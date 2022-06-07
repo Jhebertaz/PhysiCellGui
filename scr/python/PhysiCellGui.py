@@ -342,6 +342,8 @@ class MainWindow(QMainWindow):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:
             self.ui.model.setRootPath(directory)
+            self.ui.treeView.setModel(self.ui.model)
+            self.ui.treeView.setRootIndex(self.ui.model.index(directory))
 
 
 
