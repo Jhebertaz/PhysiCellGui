@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
-        self.text_search = TextSearch()
+        self.text_search = TextSearch(self)
 
 
         # For the treeview
