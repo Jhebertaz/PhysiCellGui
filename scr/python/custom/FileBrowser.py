@@ -7,11 +7,9 @@ from PySide6.QtWidgets import (QAbstractItemView, QComboBox,
                                QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QCheckBox)
 
 
-
-
-
-# https://doc.qt.io/qtforpython/examples/example_widgets_dialogs_findfiles.html
 class FileBrowser(QDialog):
+    # Inspiration for the documentation example
+    # https://doc.qt.io/qtforpython/examples/example_widgets_dialogs_findfiles.html
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -78,15 +76,15 @@ class FileBrowser(QDialog):
         self.update_combo_box(self._text_combo_box)
         self.update_combo_box(self._directory_combo_box)
 
-        # not recursive
+        # Not searching in subfolders
         if not self._check_box.checkState():
             self._current_dir = QDir(path)
             if not file_name:
                 file_name = "*"
             files = self._current_dir.entryList([file_name], QDir.Files | QDir.NoSymLinks)
 
+        # Searching in subfolders
         else:
-            #Recursive
             folder = QDir(path)
             folder.setFilter(QDir.Files or QDir.NoDotAndDotDot)
             dit = QDirIterator(path,  QDirIterator.Subdirectories | QDir.Files)

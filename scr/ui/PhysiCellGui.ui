@@ -103,6 +103,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionOpen_terminal"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -297,6 +298,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="actionOpen_terminal">
+   <property name="text">
+    <string>Open terminal</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+T</string>
    </property>
   </action>
  </widget>

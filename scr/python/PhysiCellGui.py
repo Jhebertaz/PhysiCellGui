@@ -4,14 +4,17 @@ import sys
 
 from PySide6.QtGui import QTextDocumentWriter
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel
+from ui_PhysiCellGui import Ui_MainWindow
 
 # appending the directory in the sys.path list
 sys.path.append(f'.{os.sep}custom')
 from CodeEditor import *
 from FileBrowser import *
-from ui_PhysiCellGui import Ui_MainWindow
-# pyside6-uic ..\ui\PhysiCellGui.ui -o ui_PhysiCellGui.py
+from TextSearch import *
 
+# if ui files have been modified
+# For Windows : `pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py`\
+# For Linux : `pyside6-uic scr\ui\PhysiCellGui.ui > scr\python\ui_PhysiCellGui.py`
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,15 +23,20 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Correspondence dictionary
         self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
+        self.text_search = TextSearch()
+
+
+        # For the treeview
         dir_path = "."
         self.ui.model = QFileSystemModel()
         self.ui.model.setRootPath(dir_path)
 
 
-
+        # Custom function to FileBrowser class
         def open_file_of_item(parent, row, column):
             item = parent._files_table.item(row, 0)
             self.load(parent._current_dir.absoluteFilePath(item.text()))
@@ -38,6 +46,7 @@ class MainWindow(QMainWindow):
         self.ui.window = FileBrowser()
         self.ui.inside_dock_vertical_layout.addWidget(self.ui.window)
 
+        # Treeview
         self.ui.treeView.setModel(self.ui.model)
         self.ui.treeView.setRootIndex(self.ui.model.index(dir_path))
         self.ui.treeView.doubleClicked.connect(self.treeView_doubleClicked)
@@ -49,11 +58,13 @@ class MainWindow(QMainWindow):
         self.ui.tabWidget.tabCloseRequested.connect(self.delete_Tab)
 
         # File menu
-        self.ui.actionNew.triggered.connect(lambda: self.createTextTab())
+        self.ui.actionNew.triggered.connect(self.createTextTab)
         self.ui.actionSave.triggered.connect(self.file_save)
         self.ui.actionSave_as.triggered.connect(self.file_save_as)
         self.ui.actionOpen.triggered.connect(self.file_open)
         self.ui.actionExit.triggered.connect(QCoreApplication.quit)
+        self.ui.actionOpen_terminal.triggered.connect(self.open_terminal)
+
 
         # Edit menu
         self.ui.actionUndo.triggered.connect(lambda:self.simple_operation('undo'))
@@ -62,21 +73,16 @@ class MainWindow(QMainWindow):
         self.ui.actionCut.triggered.connect(lambda:self.simple_operation('cut'))
         self.ui.actionCopy.triggered.connect(lambda:self.simple_operation('copy'))
         self.ui.actionPaste.triggered.connect(lambda:self.simple_operation('paste'))
-        # self.ui.actionDelete.triggered.connect(lambda:self.simple_operation('delete'))
-
+        self.ui.actionFind.triggered.connect(self.find)
         # View menu
         self.ui.actionZoom_in.triggered.connect(lambda:self.simple_operation('zoom in'))
         self.ui.actionZoom_out.triggered.connect(lambda:self.simple_operation('zoom out'))
-
-
-
-
         # treeview supplementaruy widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
         self.ui.tree_file_apply_button.clicked.connect(self.apply_treeview)
 
 
-        # Default
+        # Create an empty tab
         self.createTextTab()
 
 
@@ -137,7 +143,6 @@ class MainWindow(QMainWindow):
 
 
     # Extra CodeEditor function
-
     def indexes(self):
         return [self.ui.tabWidget.indexOf(w) for w in self.widget_plaintextedit.keys()]
     def widgets(self):
@@ -145,11 +150,12 @@ class MainWindow(QMainWindow):
     def paths(self):
         return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
 
-    # Inspiration
-    # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
     def closeEvent(self, e):
+        # Inspiration
+        # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
         condition = True
         widgets = self.widgets()
+
         # verify if tabs contents have been change
         for widget in widgets:
             if self.widget_plaintextedit[widget].document().isModified():
@@ -233,7 +239,6 @@ class MainWindow(QMainWindow):
         # self.statusBar().showMessage(f'Opened "{f}"')
 
         return True
-
     def maybe_save(self, index):
         widget = self.ui.tabWidget.widget(index)
 
@@ -257,7 +262,6 @@ class MainWindow(QMainWindow):
     @Slot()
     def file_new(self):
         self.createTextTab()
-
     @Slot()
     def file_open(self):
         file_dialog = QFileDialog(self, "Open File...")
@@ -298,7 +302,6 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f'Could not write to file "{native_fn}"')
 
         return success
-
     @Slot()
     def file_save_as(self):
         # Save the current open tab
@@ -316,8 +319,16 @@ class MainWindow(QMainWindow):
         self.plaintextedit_path[current_plaintextedit] = f = file_dialog.selectedFiles()[0]
         self.ui.tabWidget.setTabText(current_index, os.path.basename(os.path.normpath(f)))
         return self.file_save()
-
-
+    @Slot()
+    def open_terminal(self):
+        os.system("start cmd")
+    @Slot()
+    def find(self):
+        # self.text_search
+        if self.text_search.isVisible():
+            self.text_search.hide()
+        else:
+            self.text_search.show()
 
     # Extra Treeview
     def treeView_doubleClicked(self, index):
@@ -327,7 +338,6 @@ class MainWindow(QMainWindow):
         if os.path.isfile(path):
             # Display
             self.load(path)
-
     def browse_treeview(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
 
@@ -337,7 +347,6 @@ class MainWindow(QMainWindow):
 
             self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(directory))
             self.ui.model.setRootPath(directory)
-
     def apply_treeview(self):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:
