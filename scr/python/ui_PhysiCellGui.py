@@ -67,6 +67,8 @@ class Ui_MainWindow(object):
         self.actionZoom_out.setObjectName(u"actionZoom_out")
         self.actionOpen_terminal = QAction(MainWindow)
         self.actionOpen_terminal.setObjectName(u"actionOpen_terminal")
+        self.actionSvg_viewer = QAction(MainWindow)
+        self.actionSvg_viewer.setObjectName(u"actionSvg_viewer")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
@@ -121,6 +123,8 @@ class Ui_MainWindow(object):
         self.menuEdit.setObjectName(u"menuEdit")
         self.menuView = QMenu(self.menubar)
         self.menuView.setObjectName(u"menuView")
+        self.menuTools = QMenu(self.menubar)
+        self.menuTools.setObjectName(u"menuTools")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -148,11 +152,6 @@ class Ui_MainWindow(object):
 
         self.tree_file_browse.addWidget(self.tree_file_browse_button)
 
-        self.tree_file_apply_button = QPushButton(self.dockWidgetContents_2)
-        self.tree_file_apply_button.setObjectName(u"tree_file_apply_button")
-
-        self.tree_file_browse.addWidget(self.tree_file_apply_button)
-
         self.tree_file_browse.setStretch(0, 5)
 
         self.inside_dock_vertical_layout.addLayout(self.tree_file_browse)
@@ -172,6 +171,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
+        self.menubar.addAction(self.menuTools.menuAction())
         self.menufile.addAction(self.actionNew)
         self.menufile.addAction(self.actionSave)
         self.menufile.addAction(self.actionSave_as)
@@ -191,6 +191,7 @@ class Ui_MainWindow(object):
         self.menuEdit.addAction(self.actionFind)
         self.menuView.addAction(self.actionZoom_in)
         self.menuView.addAction(self.actionZoom_out)
+        self.menuTools.addAction(self.actionSvg_viewer)
 
         self.retranslateUi(MainWindow)
 
@@ -258,12 +259,13 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(shortcut)
         self.actionOpen_terminal.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+Alt+T", None))
 #endif // QT_CONFIG(shortcut)
+        self.actionSvg_viewer.setText(QCoreApplication.translate("MainWindow", u"Svg viewer", None))
         self.buttonLabel.setText(QCoreApplication.translate("MainWindow", u"button", None))
         self.menufile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuView.setTitle(QCoreApplication.translate("MainWindow", u"View", None))
+        self.menuTools.setTitle(QCoreApplication.translate("MainWindow", u"Tools", None))
         self.tree_file_browse_button.setText(QCoreApplication.translate("MainWindow", u"Browse", None))
-        self.tree_file_apply_button.setText(QCoreApplication.translate("MainWindow", u"Apply", None))
     # retranslateUi
 

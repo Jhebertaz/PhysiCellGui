@@ -4,6 +4,9 @@ import sys
 
 from PySide6.QtGui import QTextDocumentWriter
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel
+
+# Update
+# os.system("pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py")
 from ui_PhysiCellGui import Ui_MainWindow
 
 # appending the directory in the sys.path list
@@ -11,6 +14,7 @@ sys.path.append(f'.{os.sep}custom')
 from CodeEditor import *
 from FileBrowser import *
 from TextSearch import *
+from SvgViewer import *
 
 # if ui files have been modified
 # For Windows : `pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py`\
@@ -27,9 +31,15 @@ class MainWindow(QMainWindow):
         self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
+        #
         self.text_search = TextSearch(self)
+        self.svg_viewer = SvgViewer(self)
 
-
+        # For tree_file_comboBox
+        # initiate with the current directory
+        self.ui.tree_file_comboBox.addItem(QDir.currentPath())
+        self.ui.tree_file_comboBox.currentIndexChanged.connect(self.apply_treeview)
+        
         # For the treeview
         dir_path = "."
         self.ui.model = QFileSystemModel()
@@ -65,7 +75,6 @@ class MainWindow(QMainWindow):
         self.ui.actionExit.triggered.connect(QCoreApplication.quit)
         self.ui.actionOpen_terminal.triggered.connect(self.open_terminal)
 
-
         # Edit menu
         self.ui.actionUndo.triggered.connect(lambda:self.simple_operation('undo'))
         self.ui.actionRedo.triggered.connect(lambda:self.simple_operation('redo'))
@@ -74,18 +83,20 @@ class MainWindow(QMainWindow):
         self.ui.actionCopy.triggered.connect(lambda:self.simple_operation('copy'))
         self.ui.actionPaste.triggered.connect(lambda:self.simple_operation('paste'))
         self.ui.actionFind.triggered.connect(self.find)
+
         # View menu
         self.ui.actionZoom_in.triggered.connect(lambda:self.simple_operation('zoom in'))
         self.ui.actionZoom_out.triggered.connect(lambda:self.simple_operation('zoom out'))
-        # treeview supplementaruy widgets
+
+        # Tool menu
+        self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
+
+        # treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
-        self.ui.tree_file_apply_button.clicked.connect(self.apply_treeview)
 
 
         # Create an empty tab
         self.createTextTab()
-
-
 
 
     # Extra TabWidget
@@ -259,6 +270,7 @@ class MainWindow(QMainWindow):
 
         return True
 
+    # File menu slot
     @Slot()
     def file_new(self):
         self.createTextTab()
@@ -319,9 +331,13 @@ class MainWindow(QMainWindow):
         self.plaintextedit_path[current_plaintextedit] = f = file_dialog.selectedFiles()[0]
         self.ui.tabWidget.setTabText(current_index, os.path.basename(os.path.normpath(f)))
         return self.file_save()
+
+    # Help menu slot
     @Slot()
     def open_terminal(self):
         os.system("start cmd")
+
+    # Edit menu slot
     @Slot()
     def find(self):
         # self.text_search
@@ -330,8 +346,21 @@ class MainWindow(QMainWindow):
         else:
             self.text_search.show()
 
+    # Tools menu slot
+    @Slot()
+    def open_svg_viewer(self):
+        # self.text_search
+        if self.svg_viewer.isVisible():
+            self.svg_viewer.hide()
+        else:
+            self.svg_viewer.show()
+
+
+
+
     # Extra Treeview
     def treeView_doubleClicked(self, index):
+        print('true')
         idx = self.ui.model.index(index.row(), 1, index.parent())
         path = self.ui.model.filePath(idx)
 

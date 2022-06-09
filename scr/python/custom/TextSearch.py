@@ -5,6 +5,7 @@ import sys
 
 from PySide6.QtWidgets import QDialog, QMessageBox
 
+# os.system("pyside6-uic scr\ui\TextSearch.ui -o scr\python\ui_TextSearch.py")
 sys.path.append(f'..')
 from ui_TextSearch import Ui_Dialog
 
@@ -17,6 +18,7 @@ class TextSearch(QDialog):
         self.ui.setupUi(self)
         self.ui.pushButton.clicked.connect(lambda:self.search(self.ui.lineEdit.text()))
 
+    # Too specific
     def search(self, word):
 
         parent_current_tab = self.parent.ui.tabWidget.currentWidget()

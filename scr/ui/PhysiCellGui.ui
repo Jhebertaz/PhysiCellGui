@@ -126,10 +126,17 @@
     <addaction name="actionZoom_in"/>
     <addaction name="actionZoom_out"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionSvg_viewer"/>
+   </widget>
    <addaction name="menufile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuTools"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -147,7 +154,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="tree_file_browse" stretch="5,0,0">
+        <layout class="QHBoxLayout" name="tree_file_browse" stretch="5,0">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -161,13 +168,6 @@
           <widget class="QPushButton" name="tree_file_browse_button">
            <property name="text">
             <string>Browse</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="tree_file_apply_button">
-           <property name="text">
-            <string>Apply</string>
            </property>
           </widget>
          </item>
@@ -306,6 +306,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+T</string>
+   </property>
+  </action>
+  <action name="actionSvg_viewer">
+   <property name="text">
+    <string>Svg viewer</string>
    </property>
   </action>
  </widget>

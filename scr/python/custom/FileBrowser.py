@@ -85,8 +85,8 @@ class FileBrowser(QDialog):
 
         # Searching in subfolders
         else:
-            folder = QDir(path)
-            folder.setFilter(QDir.Files or QDir.NoDotAndDotDot)
+            self._current_dir = QDir(path)
+            self._current_dir.setFilter(QDir.Files or QDir.NoDotAndDotDot)
             dit = QDirIterator(path,  QDirIterator.Subdirectories | QDir.Files)
             files = []
 
