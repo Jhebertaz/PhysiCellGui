@@ -8,8 +8,8 @@ A simple Pyside GUI for developers of PhysiCell.
     `pip install pyinstaller`
 3. Go to PhysiCellGui folder and open a terminal
 4. Build\
-   For Windows : `pyinstaller --distpath .\scr\python --workpath .\build\work --specpath .\build\spec --onefile --windowed .\scr\python\PhysiCellGui.py`\
-   For Linux : `pyinstaller --distpath ./scr/python --workpath ./build/work --specpath ./build/spec --onefile --windowed ./scr/python/PhysiCellGui.py`
+   For Windows : `pyinstaller --distpath .\scr\python --workpath .\build\work --specpath .\build\spec --onefile --hidden-import PySide6.QtSvg --windowed .\scr\python\PhysiCellGui.py`\
+   For Linux : `pyinstaller --distpath ./scr/python --workpath ./build/work --specpath ./build/spec --onefile --hidden-import PySide6.QtSvg --windowed ./scr/python/PhysiCellGui.py`
 
 ## File structure
 
