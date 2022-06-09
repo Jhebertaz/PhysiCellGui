@@ -27,25 +27,22 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # Correspondence dictionary
-        self.widget_plaintextedit = {}
-        self.plaintextedit_path = {}
-
-        #
         self.text_search = TextSearch(self)
-        self.svg_viewer = SvgViewer(self)
+
+        # Tools
+        # Default
+        self.svg_viewer = SvgViewer()
+
+        # Custom
+        # load tool function (automatic)
+
 
         # For tree_file_comboBox
         # initiate with the current directory
         self.ui.tree_file_comboBox.addItem(QDir.currentPath())
         self.ui.tree_file_comboBox.currentIndexChanged.connect(self.apply_treeview)
-        
-        # For the treeview
-        dir_path = "."
-        self.ui.model = QFileSystemModel()
-        self.ui.model.setRootPath(dir_path)
 
-
+        # File browser
         # Custom function to FileBrowser class
         def open_file_of_item(parent, row, column):
             item = parent._files_table.item(row, 0)
@@ -57,6 +54,11 @@ class MainWindow(QMainWindow):
         self.ui.inside_dock_vertical_layout.addWidget(self.ui.window)
 
         # Treeview
+        # Default working directory
+        dir_path = "."
+        self.ui.model = QFileSystemModel()
+        self.ui.model.setRootPath(dir_path)
+
         self.ui.treeView.setModel(self.ui.model)
         self.ui.treeView.setRootIndex(self.ui.model.index(dir_path))
         self.ui.treeView.doubleClicked.connect(self.treeView_doubleClicked)
@@ -65,10 +67,15 @@ class MainWindow(QMainWindow):
         self.ui.treeView.setColumnHidden(3, True)
         self.ui.treeView.setColumnHidden(1, True)
 
+        # Tab widget
         self.ui.tabWidget.tabCloseRequested.connect(self.delete_Tab)
 
+        # Correspondence dictionary
+        self.widget_plaintextedit = {}
+        self.plaintextedit_path = {}
+
         # File menu
-        self.ui.actionNew.triggered.connect(self.createTextTab)
+        self.ui.actionNew.triggered.connect(self.file_new)
         self.ui.actionSave.triggered.connect(self.file_save)
         self.ui.actionSave_as.triggered.connect(self.file_save_as)
         self.ui.actionOpen.triggered.connect(self.file_open)
@@ -91,9 +98,8 @@ class MainWindow(QMainWindow):
         # Tool menu
         self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
 
-        # treeview supplementary widgets
+        # Treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
-
 
         # Create an empty tab
         self.createTextTab()
@@ -144,14 +150,10 @@ class MainWindow(QMainWindow):
             current_plaintextedit.copy()
         elif command == 'paste':
             current_plaintextedit.paste()
-        # elif command == 'delete':
-        #     current_plaintextedit.delete()
         elif command == 'zoom in':
             current_plaintextedit.zoomIn()
         elif command == 'zoom out':
             current_plaintextedit.zoomOut()
-
-
 
     # Extra CodeEditor function
     def indexes(self):
@@ -161,7 +163,7 @@ class MainWindow(QMainWindow):
     def paths(self):
         return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
 
-    def closeEvent(self, e):
+    def closeEvent(self, event):
         # Inspiration
         # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
         condition = True
@@ -174,22 +176,28 @@ class MainWindow(QMainWindow):
                 condition = self.maybe_save(index)
 
         if condition:
-            e.accept()
+            event.accept()
         else:
-            e.ignore()
-    def load(self, f):
-
-        if not QFile.exists(f):
+            event.ignore()
+    def load(self, file_path):
+        # Does it exists
+        if not QFile.exists(file_path):
             return False
-        file = QFile(f)
+
+        # Qfile object
+        file = QFile(file_path)
+
+
         if not file.open(QFile.ReadOnly):
             return False
 
         try:
+            # Can it be decodec in utf8
             data = file.readAll()
             text = data.data().decode('utf8')
 
         except UnicodeDecodeError as error:
+            # When file can't be decoded in utf8
             notification = QMessageBox()
             notification.setIcon(QMessageBox.Warning)
             notification.setWindowTitle('Warning')
@@ -206,8 +214,8 @@ class MainWindow(QMainWindow):
         # empty title is enough to decide the emptiness of the tab
 
         # verify uniqueness
-        if f in paths:
-            widget = widgets[paths.index(f)]
+        if file_path in paths:
+            widget = widgets[paths.index(file_path)]
 
         else:
             # verify if tabWidget empty
@@ -235,10 +243,10 @@ class MainWindow(QMainWindow):
             plaintextedit = self.widget_plaintextedit[widget]
 
             # Storing path
-            self.plaintextedit_path[plaintextedit] = f
+            self.plaintextedit_path[plaintextedit] = file_path
 
             # tab title
-            title = os.path.basename(os.path.normpath(f))
+            title = os.path.basename(os.path.normpath(file_path))
 
             # Set title
             self.ui.tabWidget.setTabText(index, title)
@@ -355,9 +363,6 @@ class MainWindow(QMainWindow):
         else:
             self.svg_viewer.show()
 
-
-
-
     # Extra Treeview
     def treeView_doubleClicked(self, index):
         print('true')
@@ -382,12 +387,6 @@ class MainWindow(QMainWindow):
             self.ui.model.setRootPath(directory)
             self.ui.treeView.setModel(self.ui.model)
             self.ui.treeView.setRootIndex(self.ui.model.index(directory))
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

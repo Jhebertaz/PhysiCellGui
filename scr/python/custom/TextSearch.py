@@ -29,15 +29,8 @@ class TextSearch(QDialog):
         # Inspiration
         # https://doc.qt.io/qtforpython/overviews/qtuitools-textfinder-example.html
         if not word:
-            QMessageBox.information(self, "Empty Search Field","The search field is empty.\nPlease enter a word and click Find.")
+            QMessageBox.information(self, "Empty Search Field", "The search field is empty.\nPlease enter a word and click Find.")
 
         if not found and word:
-            QMessageBox.information(self, "Word Not Found","Sorry, the word cannot be found.")
-
-        # count=0
-        # while parent_current_document.find(word):
-        #     count+=1
-        #
-        # print(count)
-
+            QMessageBox.information(self, "Word Not Found", "Sorry, the word cannot be found.")
 

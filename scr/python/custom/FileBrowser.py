@@ -45,12 +45,15 @@ class FileBrowser(QDialog):
         main_layout.addWidget(self._files_found_label, 4, 1)
         main_layout.addLayout(buttons_layout, 5, 0, 1, 3)
 
-
         self.setLayout(main_layout)
 
         self.setWindowTitle("Find Files")
         self.resize(500, 300)
 
+    @staticmethod
+    def update_combo_box(comboBox):
+        if comboBox.findText(comboBox.currentText()) == -1:
+            comboBox.addItem(comboBox.currentText())
     def browse(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
 
@@ -59,12 +62,6 @@ class FileBrowser(QDialog):
                 self._directory_combo_box.addItem(directory)
 
             self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(directory))
-
-    @staticmethod
-    def update_combo_box(comboBox):
-        if comboBox.findText(comboBox.currentText()) == -1:
-            comboBox.addItem(comboBox.currentText())
-
     def find(self):
         self._files_table.setRowCount(0)
 
@@ -84,6 +81,7 @@ class FileBrowser(QDialog):
             files = self._current_dir.entryList([file_name], QDir.Files | QDir.NoSymLinks)
 
         # Searching in subfolders
+        # It would be faster with four threads or more.
         else:
             self._current_dir = QDir(path)
             self._current_dir.setFilter(QDir.Files or QDir.NoDotAndDotDot)
@@ -97,7 +95,6 @@ class FileBrowser(QDialog):
         if text:
             files = self.find_files(files, text)
         self.show_files(files)
-
     def find_files(self, files, text):
         progress_dialog = QProgressDialog(self)
 
@@ -131,7 +128,6 @@ class FileBrowser(QDialog):
         progress_dialog.close()
 
         return found_files
-
     def show_files(self, files):
         for fn in files:
             file = QFile(self._current_dir.absoluteFilePath(fn))
@@ -151,19 +147,16 @@ class FileBrowser(QDialog):
 
         n = len(files)
         self._files_found_label.setText(f"{n} file(s) found (Double click on a file to open it)")
-
     def create_button(self, text, member):
         button = QPushButton(text)
         button.clicked.connect(member)
         return button
-
     def create_combo_box(self, text=""):
         combo_box = QComboBox()
         combo_box.setEditable(True)
         combo_box.addItem(text)
         combo_box.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Preferred)
         return combo_box
-
     def create_files_table(self):
         self._files_table = QTableWidget(0, 2)
         self._files_table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -174,7 +167,6 @@ class FileBrowser(QDialog):
         self._files_table.setShowGrid(False)
 
         self._files_table.cellActivated.connect(self.open_file_of_item)
-
     def open_file_of_item(self, row, column):
         item = self._files_table.item(row, 0)
 
