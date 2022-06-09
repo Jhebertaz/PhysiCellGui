@@ -1,13 +1,11 @@
 # Inspiration
 # # https://learndataanalysis.org/source-code-create-a-simple-python-app-to-run-command-lines-commands-pyqt5-tutorial/
 # # https://www.pythonguis.com/tutorials/pyside-qprocess-external-programs/
-import sys
 
 from PySide6.QtWidgets import QDialog, QMessageBox
 
-# os.system("pyside6-uic scr\ui\TextSearch.ui -o scr\python\ui_TextSearch.py")
-sys.path.append(f'..')
-from ui_TextSearch import Ui_Dialog
+# os.system("pyside6-uic scr\ui\TextSearch.ui -o scr\python\custom\ui_TextSearch.py")
+from custom.ui_TextSearch import Ui_Dialog
 
 class TextSearch(QDialog):
 

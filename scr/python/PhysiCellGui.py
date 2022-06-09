@@ -2,19 +2,16 @@
 import os
 import sys
 
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot
 from PySide6.QtGui import QTextDocumentWriter
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
+    QMessageBox, QFileDialog, QDialog
 
-# Update
-# os.system("pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py")
+from custom.CodeEditor import CodeEditor
+from custom.FileBrowser import FileBrowser
+from custom.TextSearch import TextSearch
+from custom.SvgViewer import SvgViewer
 from ui_PhysiCellGui import Ui_MainWindow
-
-# appending the directory in the sys.path list
-sys.path.append(f'.{os.sep}custom')
-from CodeEditor import *
-from FileBrowser import *
-from TextSearch import *
-from SvgViewer import *
 
 # if ui files have been modified
 # For Windows : `pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py`\
@@ -26,6 +23,8 @@ class MainWindow(QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.setWindowTitle("Dev Gui")
 
         self.text_search = TextSearch(self)
 

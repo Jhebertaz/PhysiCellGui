@@ -18,9 +18,9 @@
   <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/PhysiCellGui.py" type="text/plain"><tt>PhysiCellGui.py</tt></a>
 <span class="moduletype">Script</span>  <div class="import">
 imports:
-    <a href="#CodeEditor">CodeEditor</a>
- &#8226;   <a href="#FileBrowser">FileBrowser</a>
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
  &#8226;   <a href="#_collections_abc">_collections_abc</a>
  &#8226;   <a href="#_weakrefset">_weakrefset</a>
@@ -29,6 +29,10 @@ imports:
  &#8226;   <a href="#collections">collections</a>
  &#8226;   <a href="#collections.abc">collections.abc</a>
  &#8226;   <a href="#copyreg">copyreg</a>
+ &#8226;   <a href="#custom.CodeEditor">custom.CodeEditor</a>
+ &#8226;   <a href="#custom.FileBrowser">custom.FileBrowser</a>
+ &#8226;   <a href="#custom.SvgViewer">custom.SvgViewer</a>
+ &#8226;   <a href="#custom.TextSearch">custom.TextSearch</a>
  &#8226;   <a href="#encodings">encodings</a>
  &#8226;   <a href="#encodings.aliases">encodings.aliases</a>
  &#8226;   <a href="#encodings.ascii">encodings.ascii</a>
@@ -258,28 +262,6 @@ imported by:
 </div>
 
 <div class="node">
-  <a name="CodeEditor"></a>
-  <a target="code" href="" type="text/plain"><tt>CodeEditor</tt></a>
-<span class="moduletype">MissingModule</span>  <div class="import">
-imported by:
-    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
-
-  </div>
-
-</div>
-
-<div class="node">
-  <a name="FileBrowser"></a>
-  <a target="code" href="" type="text/plain"><tt>FileBrowser</tt></a>
-<span class="moduletype">MissingModule</span>  <div class="import">
-imported by:
-    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
-
-  </div>
-
-</div>
-
-<div class="node">
   <a name="PySide6"></a>
   <a target="code" href="///C:/Users/Julien/AppData/Local/Programs/Python/Python310/lib/site-packages/PySide6/__init__.py" type="text/plain"><tt>PySide6</tt></a>
 <span class="moduletype">Package</span>  <div class="import">
@@ -301,6 +283,8 @@ imported by:
  &#8226;   <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
  &#8226;   <a href="#PySide6.QtNetwork">PySide6.QtNetwork</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
+ &#8226;   <a href="#PySide6.QtSvgWidgets">PySide6.QtSvgWidgets</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
 
   </div>
@@ -317,10 +301,17 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+ &#8226;   <a href="#PySide6.QtCore">PySide6.QtCore</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
  &#8226;   <a href="#PySide6.QtNetwork">PySide6.QtNetwork</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom.CodeEditor">custom.CodeEditor</a>
+ &#8226;   <a href="#custom.FileBrowser">custom.FileBrowser</a>
+ &#8226;   <a href="#custom.SvgViewer">custom.SvgViewer</a>
+ &#8226;   <a href="#custom.ui_SvgViewer">custom.ui_SvgViewer</a>
+ &#8226;   <a href="#custom.ui_TextSearch">custom.ui_TextSearch</a>
  &#8226;   <a href="#ui_PhysiCellGui">ui_PhysiCellGui</a>
 
   </div>
@@ -340,7 +331,12 @@ imports:
 imported by:
     <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
  &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom.CodeEditor">custom.CodeEditor</a>
+ &#8226;   <a href="#custom.FileBrowser">custom.FileBrowser</a>
+ &#8226;   <a href="#custom.ui_SvgViewer">custom.ui_SvgViewer</a>
+ &#8226;   <a href="#custom.ui_TextSearch">custom.ui_TextSearch</a>
  &#8226;   <a href="#ui_PhysiCellGui">ui_PhysiCellGui</a>
 
   </div>
@@ -366,6 +362,40 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="PySide6.QtSvg"></a>
+  <tt>PySide6.QtSvg</tt> <span class="moduletype"><tt>C:\Users\Julien\AppData\Local\Programs\Python\Python310\lib\site-packages\PySide6\QtSvg.pyd</tt></span>  <div class="import">
+imports:
+    <a href="#PySide6">PySide6</a>
+ &#8226;   <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+ &#8226;   <a href="#PySide6.QtSvg">PySide6.QtSvg</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="PySide6.QtSvgWidgets"></a>
+  <tt>PySide6.QtSvgWidgets</tt> <span class="moduletype"><tt>C:\Users\Julien\AppData\Local\Programs\Python\Python310\lib\site-packages\PySide6\QtSvgWidgets.pyd</tt></span>  <div class="import">
+imports:
+    <a href="#PySide6">PySide6</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#custom.SvgViewer">custom.SvgViewer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="PySide6.QtWidgets"></a>
   <tt>PySide6.QtWidgets</tt> <span class="moduletype"><tt>C:\Users\Julien\AppData\Local\Programs\Python\Python310\lib\site-packages\PySide6\QtWidgets.pyd</tt></span>  <div class="import">
 imports:
@@ -379,6 +409,12 @@ imports:
 imported by:
     <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
  &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom.CodeEditor">custom.CodeEditor</a>
+ &#8226;   <a href="#custom.FileBrowser">custom.FileBrowser</a>
+ &#8226;   <a href="#custom.SvgViewer">custom.SvgViewer</a>
+ &#8226;   <a href="#custom.TextSearch">custom.TextSearch</a>
+ &#8226;   <a href="#custom.ui_SvgViewer">custom.ui_SvgViewer</a>
+ &#8226;   <a href="#custom.ui_TextSearch">custom.ui_TextSearch</a>
  &#8226;   <a href="#ui_PhysiCellGui">ui_PhysiCellGui</a>
 
   </div>
@@ -1812,6 +1848,137 @@ imports:
   <div class="import">
 imported by:
     <a href="#importlib.metadata">importlib.metadata</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom"></a>
+  <a target="code" href="-" type="text/plain"><tt>custom</tt></a>
+<span class="moduletype">NamespacePackage</span>  <div class="import">
+imported by:
+    <a href="#custom.CodeEditor">custom.CodeEditor</a>
+ &#8226;   <a href="#custom.FileBrowser">custom.FileBrowser</a>
+ &#8226;   <a href="#custom.SvgViewer">custom.SvgViewer</a>
+ &#8226;   <a href="#custom.TextSearch">custom.TextSearch</a>
+ &#8226;   <a href="#custom.ui_SvgViewer">custom.ui_SvgViewer</a>
+ &#8226;   <a href="#custom.ui_TextSearch">custom.ui_TextSearch</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.CodeEditor"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/CodeEditor.py" type="text/plain"><tt>custom.CodeEditor</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.FileBrowser"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/FileBrowser.py" type="text/plain"><tt>custom.FileBrowser</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.SvgViewer"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/SvgViewer.py" type="text/plain"><tt>custom.SvgViewer</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtSvgWidgets">PySide6.QtSvgWidgets</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+ &#8226;   <a href="#custom.ui_SvgViewer">custom.ui_SvgViewer</a>
+ &#8226;   <a href="#os">os</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.TextSearch"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/TextSearch.py" type="text/plain"><tt>custom.TextSearch</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+ &#8226;   <a href="#custom.ui_TextSearch">custom.ui_TextSearch</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#PhysiCellGui.py">PhysiCellGui.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.ui_SvgViewer"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/ui_SvgViewer.py" type="text/plain"><tt>custom.ui_SvgViewer</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#custom.SvgViewer">custom.SvgViewer</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="custom.ui_TextSearch"></a>
+  <a target="code" href="///C:/Users/Julien/Documents/Project/PhysiCellGui/scr/python/custom/ui_TextSearch.py" type="text/plain"><tt>custom.ui_TextSearch</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PySide6.QtCore">PySide6.QtCore</a>
+ &#8226;   <a href="#PySide6.QtGui">PySide6.QtGui</a>
+ &#8226;   <a href="#PySide6.QtWidgets">PySide6.QtWidgets</a>
+ &#8226;   <a href="#custom">custom</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#custom.TextSearch">custom.TextSearch</a>
 
   </div>
 
@@ -6329,6 +6496,7 @@ imported by:
  &#8226;   <a href="#ctypes._aix">ctypes._aix</a>
  &#8226;   <a href="#ctypes.macholib.dyld">ctypes.macholib.dyld</a>
  &#8226;   <a href="#ctypes.util">ctypes.util</a>
+ &#8226;   <a href="#custom.SvgViewer">custom.SvgViewer</a>
  &#8226;   <a href="#distutils.ccompiler">distutils.ccompiler</a>
  &#8226;   <a href="#distutils.debug">distutils.debug</a>
  &#8226;   <a href="#distutils.dep_util">distutils.dep_util</a>
