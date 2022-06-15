@@ -1,7 +1,10 @@
 # PhysiCellGui
 A simple Pyside GUI for developers of PhysiCell.
 
-# How to open it
+# Terminal launch
+Run `.\scr\python\PhysiCellGui.py`
+
+# How to create .exe
 1. Install Pyside6 libraries\
     `pip install PySide6`
 2. Install pyinstaller\

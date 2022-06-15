@@ -16,10 +16,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDockWidget, QFormLayout,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QMenu, QMenuBar, QPushButton,
-    QScrollArea, QSizePolicy, QStatusBar, QTabWidget,
+from PySide6.QtWidgets import (QApplication, QComboBox, QDockWidget, QHBoxLayout,
+    QHeaderView, QMainWindow, QMenu, QMenuBar,
+    QPushButton, QSizePolicy, QStatusBar, QTabWidget,
     QTreeView, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
@@ -82,33 +81,6 @@ class Ui_MainWindow(object):
         self.tabWidget.setMovable(True)
 
         self.horizontalLayout_2.addWidget(self.tabWidget)
-
-        self.scrollArea = QScrollArea(self.centralwidget)
-        self.scrollArea.setObjectName(u"scrollArea")
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 197, 591))
-        self.horizontalLayout = QHBoxLayout(self.scrollAreaWidgetContents)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.formLayout_2 = QFormLayout()
-        self.formLayout_2.setObjectName(u"formLayout_2")
-        self.buttonLabel = QLabel(self.scrollAreaWidgetContents)
-        self.buttonLabel.setObjectName(u"buttonLabel")
-
-        self.formLayout_2.setWidget(0, QFormLayout.LabelRole, self.buttonLabel)
-
-        self.buttonLineEdit = QLineEdit(self.scrollAreaWidgetContents)
-        self.buttonLineEdit.setObjectName(u"buttonLineEdit")
-
-        self.formLayout_2.setWidget(0, QFormLayout.FieldRole, self.buttonLineEdit)
-
-
-        self.horizontalLayout.addLayout(self.formLayout_2)
-
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-
-        self.horizontalLayout_2.addWidget(self.scrollArea)
 
         self.horizontalLayout_2.setStretch(0, 5)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -260,7 +232,6 @@ class Ui_MainWindow(object):
         self.actionOpen_terminal.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+Alt+T", None))
 #endif // QT_CONFIG(shortcut)
         self.actionSvg_viewer.setText(QCoreApplication.translate("MainWindow", u"Svg viewer", None))
-        self.buttonLabel.setText(QCoreApplication.translate("MainWindow", u"button", None))
         self.menufile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))

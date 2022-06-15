@@ -1,21 +1,49 @@
 # This Python file uses the following encoding: utf-8
 import os
 import sys
-
-from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot
-from PySide6.QtGui import QTextDocumentWriter
+import importlib
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator
+from PySide6.QtGui import QTextDocumentWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
     QMessageBox, QFileDialog, QDialog
 
+
+# Refresh ui file
+if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+    # linux or OS X
+    os.system(f"pyside6-uic ui{os.sep}..{os.sep}PhysiCellGui.ui > .{os.sep}ui_PhysiCellGui.py")
+elif sys.platform == "win32":
+    # Windows
+    os.system(f"pyside6-uic ..{os.sep}ui{os.sep}PhysiCellGui.ui -o .{os.sep}ui_PhysiCellGui.py")
+
+### relative import
 from custom.CodeEditor import CodeEditor
 from custom.FileBrowser import FileBrowser
 from custom.TextSearch import TextSearch
-from custom.SvgViewer import SvgViewer
+# from custom.SvgViewer import SvgViewer
 from ui_PhysiCellGui import Ui_MainWindow
 
-# if ui files have been modified
-# For Windows : `pyside6-uic scr\ui\PhysiCellGui.ui -o scr\python\ui_PhysiCellGui.py`\
-# For Linux : `pyside6-uic scr\ui\PhysiCellGui.ui > scr\python\ui_PhysiCellGui.py`
+### addons import
+addons = QDirIterator(f'..{os.sep}..{os.sep}addons', QDirIterator.Subdirectories)
+
+with open('module_to_import.py','w') as file:
+
+    file.write("import sys\n")
+
+    while addons.hasNext():
+        current = QDir(addons.next())
+        path = current.path()
+
+        if 'ADDON' in path and not '__pycache__' in path:
+            module_file_name = current.dirName()
+            module_path = current.path().strip(module_file_name)[:-1]
+
+            file.write(f"sys.path.append('..{module_path}')\n")
+            file.write(f"from {module_file_name.strip('.py')} import *\n")
+
+
+
+from module_to_import import *
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -25,16 +53,6 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Dev Gui")
-
-        self.text_search = TextSearch(self)
-
-        # Tools
-        # Default
-        self.svg_viewer = SvgViewer()
-
-        # Custom
-        # load tool function (automatic)
-
 
         # For tree_file_comboBox
         # initiate with the current directory
@@ -97,12 +115,41 @@ class MainWindow(QMainWindow):
         # Tool menu
         self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
 
+        # Custom
+        # search for addons
+        addons = QDirIterator(f'..{os.sep}..{os.sep}addons')
+        # skip . and ..
+        addons.next()
+        addons.next()
+
+        self.open_tool_dict = {}
+
+        while addons.hasNext():
+
+            current = QDir(addons.next())
+
+            # Create action
+            self.open_tool_dict['QAction'] = QAction(current.dirName(), self)
+
+            # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
+            # self.open_tool_dict['QAction'].setShortcut('...')
+            # self.open_tool_dict['QAction'].setStatusTip('...')
+
+            # ADDON_ToolName.py -> get ToolName class instance
+
+            # self.open_tool_dict['process'] = self.open_generic_tool(current.dirName(), )
+            # self.open_tool_dict['QAction'].triggered.connect(...)
+            #
+
+            # menubar = self.menuBar()
+            # fileMenu = menubar.addMenu('&File')
+            # self.ui.addAction(self.open_tool_dict['QAction'])
+
         # Treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
 
         # Create an empty tab
         self.createTextTab()
-
 
     # Extra TabWidget
     def createTextTab(self, title=None):
@@ -119,10 +166,13 @@ class MainWindow(QMainWindow):
 
         # Define Layout
         layout = QHBoxLayout()
+
         # Set layout to QWidget
         new_tab.setLayout(layout)
+
         # Add QPlainTextEdit inside the layout
         layout.addWidget(self.widget_plaintextedit[new_tab])
+
         # Add Tab
         self.ui.tabWidget.addTab(new_tab, title)
     def delete_Tab(self, index):
@@ -347,20 +397,42 @@ class MainWindow(QMainWindow):
     # Edit menu slot
     @Slot()
     def find(self):
+
+        if not 'text_search' in self.__dict__.keys():
+            self.text_search = TextSearch(self)
+
         # self.text_search
         if self.text_search.isVisible():
             self.text_search.hide()
+
         else:
             self.text_search.show()
 
-    # Tools menu slot
+    # # Tools menu slot
+    # @Slot()
+    # def open_svg_viewer(self):
+    #
+    #     if not 'svg_viewer' in self.__dict__.keys():
+    #         self.svg_viewer = SvgViewer()
+    #
+    #     if self.svg_viewer.isVisible():
+    #         self.svg_viewer.hide()
+    #
+    #     else:
+    #         self.svg_viewer.show()
+
     @Slot()
-    def open_svg_viewer(self):
-        # self.text_search
-        if self.svg_viewer.isVisible():
-            self.svg_viewer.hide()
+    def open_generic_tool(self, key, tool):
+
+        if not 'key' in self.open_tool_dict.keys():
+            self.open_tool_dict[key] = tool()
+
+        if self.open_tool_dict[key].isVisible():
+            self.open_tool_dict[key].hide()
+
         else:
-            self.svg_viewer.show()
+            self.open_tool_dict[key].show()
+
 
     # Extra Treeview
     def treeView_doubleClicked(self, index):
@@ -393,68 +465,3 @@ if __name__ == "__main__":
     widget = MainWindow()
     widget.show()
     sys.exit(app.exec())
-
-
-# def show_text_file(self, path):
-#     try:
-#         f = open(path, 'r+')
-#         index = None
-#
-#         # Verify if there is an empty tab
-#         # empty title is enough to decide the emptiness of the tab
-#         indexes = [self.ui.tabWidget.indexOf(w) for w in self.widget_plaintextedit.keys()]
-#         widgets = [self.ui.tabWidget.widget(i) for i in indexes]
-#         paths = [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in widgets]
-#
-#         with f:
-#             data = f.read()
-#
-#             # verify uniqueness
-#             if path in paths:
-#                 widget = widgets[paths.index(path)]
-#
-#             else:
-#                 # verify if tabWidget empty
-#                 if self.ui.tabWidget.count() == 0:
-#                     # Create empty tab
-#                     self.createTextTab()
-#
-#                     # by default the first tab have index 0
-#                     index = 0
-#
-#                 for i, w in zip(indexes, widgets):
-#
-#                     if self.ui.tabWidget.tabText(i) in [None,'']:
-#                         index = i
-#                         i = indexes[-1]
-#
-#                 if index == None:
-#                     self.createTextTab()
-#                     index = indexes[-1] + 1
-#
-#                 # Retrieve page
-#                 widget = self.ui.tabWidget.widget(index)
-#
-#                 # Retrieve object
-#                 plaintextedit = self.widget_plaintextedit[widget]
-#
-#                 # Storing path
-#                 self.plaintextedit_path[plaintextedit] = path
-#
-#                 # tab title
-#                 title = os.path.basename(os.path.normpath(path))
-#
-#                 # Set title
-#                 self.ui.tabWidget.setTabText(index, title)
-#
-#                 # Set data
-#                 plaintextedit.setPlainText(data)
-#             self.ui.tabWidget.setCurrentWidget(widget)
-#
-#     except UnicodeDecodeError as error:
-#         # (unsupported encoding)
-#         notification = QMessageBox()
-#         notification.setIcon(QMessageBox.Warning)
-#         notification.setWindowTitle('Warning')
-#         notification.setText(f"Unexpected {type(error)=}\nUnsupported encoding")
-#         notification.exec()

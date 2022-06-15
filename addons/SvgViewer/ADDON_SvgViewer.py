@@ -1,11 +1,26 @@
 import os
-
-from PySide6.QtCore import QDir, QItemSelection
+import sys
+from PySide6.QtCore import QDir, QItemSelection, QStringListModel
 from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView
 
-# os.system("pyside6-uic scr\ui\SvgViewer.ui -o scr\python\custom\ui_SvgViewer.py")
-from custom.ui_SvgViewer import Ui_Dialog
+# basic info
+filename = 'ADDON_SvgViewer.py'
+path = os.path.realpath(__file__).strip(filename)
+
+# Change directory for the script one
+os.chdir(path)
+
+# Refresh ui file
+if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+    # linux or OS X
+    os.system(f"pyside6-uic SvgViewer.ui > ui_SvgViewer.py")
+
+elif sys.platform == "win32":
+    # Windows
+    os.system(f"pyside6-uic SvgViewer.ui -o ui_SvgViewer.py")
+
+from ui_SvgViewer import Ui_Dialog
 
 class SvgViewer(QDialog):
     def __init__(self, parent=None):
@@ -18,6 +33,11 @@ class SvgViewer(QDialog):
         dir_path = "."
         self.ui.model = QFileSystemModel()
         self.ui.model.setRootPath(dir_path)
+
+        # To only display svg file
+        # https://python.hotexamples.com/fr/examples/PyQt4.QtGui/QFileSystemModel/setNameFilters/python-qfilesystemmodel-setnamefilters-method-examples.html
+        self.ui.model.setNameFilters(["*.svg"])
+        self.ui.model.setNameFilterDisables(False)
         self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
 
         self.ui.listView.setModel(self.ui.model)
@@ -65,4 +85,3 @@ class SvgViewer(QDialog):
             self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
             self.ui.listView.setModel(self.ui.model)
             self.ui.listView.setRootIndex(self.ui.model.index(directory))
-
