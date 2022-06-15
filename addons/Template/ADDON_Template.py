@@ -21,7 +21,7 @@ elif sys.platform == "win32":
 from templateUi import Ui_Dialog
 
 class Template(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__()
 
         self.ui = Ui_Dialog()

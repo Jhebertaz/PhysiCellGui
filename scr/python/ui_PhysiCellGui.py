@@ -66,8 +66,6 @@ class Ui_MainWindow(object):
         self.actionZoom_out.setObjectName(u"actionZoom_out")
         self.actionOpen_terminal = QAction(MainWindow)
         self.actionOpen_terminal.setObjectName(u"actionOpen_terminal")
-        self.actionSvg_viewer = QAction(MainWindow)
-        self.actionSvg_viewer.setObjectName(u"actionSvg_viewer")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
@@ -163,7 +161,6 @@ class Ui_MainWindow(object):
         self.menuEdit.addAction(self.actionFind)
         self.menuView.addAction(self.actionZoom_in)
         self.menuView.addAction(self.actionZoom_out)
-        self.menuTools.addAction(self.actionSvg_viewer)
 
         self.retranslateUi(MainWindow)
 
@@ -231,7 +228,6 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(shortcut)
         self.actionOpen_terminal.setShortcut(QCoreApplication.translate("MainWindow", u"Ctrl+Alt+T", None))
 #endif // QT_CONFIG(shortcut)
-        self.actionSvg_viewer.setText(QCoreApplication.translate("MainWindow", u"Svg viewer", None))
         self.menufile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))

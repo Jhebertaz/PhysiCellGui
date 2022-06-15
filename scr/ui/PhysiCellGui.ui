@@ -97,7 +97,6 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionSvg_viewer"/>
    </widget>
    <addaction name="menufile"/>
    <addaction name="menuEdit"/>
@@ -273,11 +272,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+T</string>
-   </property>
-  </action>
-  <action name="actionSvg_viewer">
-   <property name="text">
-    <string>Svg viewer</string>
    </property>
   </action>
  </widget>

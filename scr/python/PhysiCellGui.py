@@ -113,37 +113,36 @@ class MainWindow(QMainWindow):
         self.ui.actionZoom_out.triggered.connect(lambda:self.simple_operation('zoom out'))
 
         # Tool menu
-        self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
+        # self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
 
         # Custom
+        self.open_tool_dict = {}
+
         # search for addons
         addons = QDirIterator(f'..{os.sep}..{os.sep}addons')
-        # skip . and ..
-        addons.next()
-        addons.next()
-
-        self.open_tool_dict = {}
 
         while addons.hasNext():
 
             current = QDir(addons.next())
+            addon_name = current.dirName()
 
-            # Create action
-            self.open_tool_dict['QAction'] = QAction(current.dirName(), self)
+            if not addon_name == '.' and not addon_name== '..':
+                print(addon_name)
+                # Create action
+                self.open_tool_dict['QAction'] = QAction(addon_name, self)
 
-            # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
-            # self.open_tool_dict['QAction'].setShortcut('...')
-            # self.open_tool_dict['QAction'].setStatusTip('...')
+                # Tool instance
+                self.open_tool_dict['process'] = tool = globals()[addon_name]
+                # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
+                # self.open_tool_dict['QAction'].setShortcut('...')
+                # self.open_tool_dict['QAction'].setStatusTip('...')
 
-            # ADDON_ToolName.py -> get ToolName class instance
+                self.open_tool_dict['QAction'].triggered.connect(lambda k=addon_name, t=tool:self.open_generic_tool(k, t))
+                #
 
-            # self.open_tool_dict['process'] = self.open_generic_tool(current.dirName(), )
-            # self.open_tool_dict['QAction'].triggered.connect(...)
-            #
-
-            # menubar = self.menuBar()
-            # fileMenu = menubar.addMenu('&File')
-            # self.ui.addAction(self.open_tool_dict['QAction'])
+                # menubar = self.menuBar()
+                # fileMenu = menubar.addMenu('&File')
+                self.ui.menuTools.addAction(self.open_tool_dict['QAction'])
 
         # Treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
