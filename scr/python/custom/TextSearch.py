@@ -32,3 +32,6 @@ class TextSearch(QDialog):
         if not found and word:
             QMessageBox.information(self, "Word Not Found", "Sorry, the word cannot be found.")
 
+    def focus(self):
+        self.ui.lineEdit.setFocus()
+        self.ui.lineEdit.selectAll()

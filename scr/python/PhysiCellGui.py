@@ -52,6 +52,8 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.working_directory = QDir.currentPath()
+
         self.setWindowTitle("Dev Gui")
 
         # For tree_file_comboBox
@@ -91,6 +93,11 @@ class MainWindow(QMainWindow):
         self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
+        # Custom
+        self.open_tool_dict = {}
+        self.widget_tool = {}
+        self.tool_key = {}
+
         # File menu
         self.ui.actionNew.triggered.connect(self.file_new)
         self.ui.actionSave.triggered.connect(self.file_save)
@@ -115,8 +122,8 @@ class MainWindow(QMainWindow):
         # Tool menu
         # self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
 
-        # Custom
-        self.open_tool_dict = {}
+
+
 
         # search for addons
         addons = QDirIterator(f'..{os.sep}..{os.sep}addons')
@@ -388,6 +395,7 @@ class MainWindow(QMainWindow):
         self.ui.tabWidget.setTabText(current_index, os.path.basename(os.path.normpath(f)))
         return self.file_save()
 
+
     # Help menu slot
     @Slot()
     def open_terminal(self):
@@ -406,20 +414,9 @@ class MainWindow(QMainWindow):
 
         else:
             self.text_search.show()
+            self.text_search.focus()
 
-    # # Tools menu slot
-    # @Slot()
-    # def open_svg_viewer(self):
-    #
-    #     if not 'svg_viewer' in self.__dict__.keys():
-    #         self.svg_viewer = SvgViewer()
-    #
-    #     if self.svg_viewer.isVisible():
-    #         self.svg_viewer.hide()
-    #
-    #     else:
-    #         self.svg_viewer.show()
-
+    # Tool menu slot
     @Slot()
     def open_generic_tool(self, key, tool):
 
@@ -432,16 +429,42 @@ class MainWindow(QMainWindow):
         else:
             self.open_tool_dict[key].show()
 
+    def open_generic_tool_tab(self, key, tool):
+
+        # Create QWidget
+        new_tab = QWidget()
+        # Define Layout
+        layout = QHBoxLayout()
+
+        # Open new tab
+        if not 'key' in self.open_tool_dict.keys():
+            self.open_tool_dict[key] = tool()
+            layout.addWidget(self.open_tool_dict[key])
+
+
+        # Change tab
+        else:
+            pass
+            # self.open_tool_dict[key].show()
+
+        # Set layout to QWidget
+        new_tab.setLayout(layout)
+
+        # Add Tab
+        self.ui.tabWidget.addTab(new_tab, key)
+
+
 
     # Extra Treeview
     def treeView_doubleClicked(self, index):
-        print('true')
         idx = self.ui.model.index(index.row(), 1, index.parent())
         path = self.ui.model.filePath(idx)
 
         if os.path.isfile(path):
             # Display
             self.load(path)
+
+
     def browse_treeview(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
 
@@ -451,6 +474,10 @@ class MainWindow(QMainWindow):
 
             self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(directory))
             self.ui.model.setRootPath(directory)
+
+            self.working_directory = directory
+
+            self.ui.window.set_working_directory(self.working_directory)
     def apply_treeview(self):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:

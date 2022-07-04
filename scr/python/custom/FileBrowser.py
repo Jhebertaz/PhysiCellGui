@@ -78,14 +78,17 @@ class FileBrowser(QDialog):
             self._current_dir = QDir(path)
             if not file_name:
                 file_name = "*"
-            files = self._current_dir.entryList([file_name], QDir.Files | QDir.NoSymLinks)
+            files = self._current_dir.entryList(["*"+file_name, file_name, file_name+"*"], QDir.Files | QDir.NoSymLinks)
 
         # Searching in subfolders
         # It would be faster with four threads or more.
         else:
+            if not file_name:
+                file_name = "*"
             self._current_dir = QDir(path)
             self._current_dir.setFilter(QDir.Files or QDir.NoDotAndDotDot)
-            dit = QDirIterator(path,  QDirIterator.Subdirectories | QDir.Files)
+            self._current_dir.setSorting(QDir.Name)
+            dit = QDirIterator(path, ["*"+file_name, file_name, file_name+"*"], QDir.Files or QDir.NoDotAndDotDot, QDirIterator.Subdirectories | QDir.Files)
             files = []
 
             while dit.hasNext():
@@ -171,3 +174,7 @@ class FileBrowser(QDialog):
         item = self._files_table.item(row, 0)
 
         QDesktopServices.openUrl(QUrl(self._current_dir.absoluteFilePath(item.text())))
+    def set_working_directory(self, path):
+        self._directory_combo_box.addItem(path)
+        self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
+

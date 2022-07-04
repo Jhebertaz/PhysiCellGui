@@ -2,7 +2,7 @@ import os
 import sys
 from PySide6.QtCore import QDir, QItemSelection, QStringListModel
 from PySide6.QtSvgWidgets import QSvgWidget
-from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView
+from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox
 
 # basic info
 filename = 'ADDON_SvgViewer.py'
@@ -23,9 +23,9 @@ elif sys.platform == "win32":
 from ui_SvgViewer import Ui_Dialog
 
 class SvgViewer(QDialog):
-    def __init__(self, parent=None):
-        super().__init__()
 
+    def __init__(self, parent=None, option=None):
+        super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
@@ -58,11 +58,23 @@ class SvgViewer(QDialog):
         self.viewer = QSvgWidget()
         self.ui.svg_vertical_layout.addWidget(self.viewer)
 
+        if option==None:
+            # Button box
+            self.ui.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok| QDialogButtonBox.Cancel)
+            self.ui.verticalLayout.addWidget(self.ui.buttonBox)
+
+            self.ui.buttonBox.accepted.connect(self.accept)
+            self.ui.buttonBox.rejected.connect(self.reject)
+
         self.setWindowTitle("SVG Viewer")
 
     def listview_doubleClicked(self, index):
         if type(index) == type(QItemSelection()):
-            idx = index.indexes()[0]
+            try:
+                idx = index.indexes()[0]
+            except IndexError:
+                return
+
             path = self.ui.model.filePath(idx)
 
             if os.path.isfile(path):
