@@ -22,4 +22,4 @@ Run `.\scr\python\PhysiCellGui.py`
 - doc : documentations
 
 
-## How to create an custom addons
+## How to create a custom add-ons 

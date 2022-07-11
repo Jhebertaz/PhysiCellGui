@@ -60,11 +60,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        self.working_directory = QDir.currentPath()
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        #
-        self.working_directory = QDir.currentPath()
-        #
         self.setWindowTitle("Dev Gui")
 
         # For tree_file_comboBox
@@ -102,7 +101,6 @@ class MainWindow(QMainWindow):
 
         # Correspondence dictionary
         self.widget_tool = {}
-        # self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
         # Custom
@@ -129,16 +127,12 @@ class MainWindow(QMainWindow):
         self.ui.actionZoom_in.triggered.connect(lambda:self.simple_operation('zoom in'))
         self.ui.actionZoom_out.triggered.connect(lambda:self.simple_operation('zoom out'))
 
-        # Tool menu
-        # self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
-
         # search for addons
         addons = QDirIterator(f'..{os.sep}..{os.sep}addons')
 
         while addons.hasNext():
             current = QDir(addons.next())
             addon_name = current.dirName()
-            # print(current.path(),addon_name)
             if not addon_name == '.' and not addon_name == '..':
                 self.open_tool_dict[addon_name] = {}
                 # Create action
@@ -147,30 +141,6 @@ class MainWindow(QMainWindow):
                 self.open_tool_dict[addon_name]['QAction'].triggered.connect(lambda k=addon_name, n=None: self.open_generic_tool_tab(k,addon_name))
                 # Add to menu tool
                 self.ui.menuTools.addAction(self.open_tool_dict[addon_name]['QAction'])
-
-        # while addons.hasNext():
-        #
-        #     current = QDir(addons.next())
-        #     addon_name = current.dirName()
-        #
-        #     if not addon_name == '.' and not addon_name== '..':
-        #         self.open_tool_dict[addon_name] = {}
-        #         # Create action
-        #         self.open_tool_dict[addon_name]['QAction'] = QAction(addon_name, self)
-        #
-        #         # Tool instance
-        #         self.open_tool_dict[addon_name]['process'] = tool = globals()[addon_name]
-        #
-        #         # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
-        #         # self.open_tool_dict[addon_name]['QAction'].setShortcut('...')
-        #         # self.open_tool_dict[addon_name]['QAction'].setStatusTip('...')
-        #
-        #         self.open_tool_dict[addon_name]['QAction'].triggered.connect(lambda k=addon_name, t=tool:self.open_generic_tool_tab(k, t))
-        #         #
-        #
-        #         # menubar = self.menuBar()
-        #         # fileMenu = menubar.addMenu('&File')
-        #         self.ui.menuTools.addAction(self.open_tool_dict[addon_name]['QAction'])
 
         # Treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
@@ -469,17 +439,6 @@ class MainWindow(QMainWindow):
             self.text_search.focus()
 
     # Tool menu slot
-    # @Slot()
-    # def open_generic_tool(self, key, tool):
-    #
-    #     if not 'key' in self.open_tool_dict.keys():
-    #         self.open_tool_dict[key] = tool()
-    #
-    #     if self.open_tool_dict[key].isVisible():
-    #         self.open_tool_dict[key].hide()
-    #
-    #     else:
-    #         self.open_tool_dict[key].show()
     def retrieve_widget_tab_by_name(self, name):
         # verify if tab already exist
         # by default the first tab have index 0
@@ -502,7 +461,6 @@ class MainWindow(QMainWindow):
 
         else:
             return already_exist
-
     def open_generic_tool_tab(self, key, n):
 
         # Tool instance
