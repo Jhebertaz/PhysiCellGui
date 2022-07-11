@@ -2,10 +2,16 @@
 import os
 import sys
 import importlib
-from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator
-from PySide6.QtGui import QTextDocumentWriter, QAction
+from functools import partial
+
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt
+from PySide6.QtGui import QTextDocumentWriter, QAction, QCursor
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
-    QMessageBox, QFileDialog, QDialog
+    QMessageBox, QFileDialog, QDialog, QMenu
+
+# basic info
+filename = 'PhysiCellGui.py'
+realpath = os.path.realpath(__file__).strip(filename)
 
 
 # Refresh ui file
@@ -22,6 +28,8 @@ from custom.FileBrowser import FileBrowser
 from custom.TextSearch import TextSearch
 # from custom.SvgViewer import SvgViewer
 from ui_PhysiCellGui import Ui_MainWindow
+
+
 
 ### addons import
 addons = QDirIterator(f'..{os.sep}..{os.sep}addons', QDirIterator.Subdirectories)
@@ -41,19 +49,22 @@ with open('module_to_import.py','w') as file:
             file.write(f"sys.path.append('..{module_path}')\n")
             file.write(f"from {module_file_name.strip('.py')} import *\n")
 
-
-
 from module_to_import import *
 
+# move toward the real path
+os.chdir("C"+realpath)
+
 class MainWindow(QMainWindow):
+
+
     def __init__(self):
         super(MainWindow, self).__init__()
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
+        #
         self.working_directory = QDir.currentPath()
-
+        #
         self.setWindowTitle("Dev Gui")
 
         # For tree_file_comboBox
@@ -90,13 +101,12 @@ class MainWindow(QMainWindow):
         self.ui.tabWidget.tabCloseRequested.connect(self.delete_Tab)
 
         # Correspondence dictionary
-        self.widget_plaintextedit = {}
+        self.widget_tool = {}
+        # self.widget_plaintextedit = {}
         self.plaintextedit_path = {}
 
         # Custom
         self.open_tool_dict = {}
-        self.widget_tool = {}
-        self.tool_key = {}
 
         # File menu
         self.ui.actionNew.triggered.connect(self.file_new)
@@ -122,34 +132,45 @@ class MainWindow(QMainWindow):
         # Tool menu
         # self.ui.actionSvg_viewer.triggered.connect(self.open_svg_viewer)
 
-
-
-
         # search for addons
         addons = QDirIterator(f'..{os.sep}..{os.sep}addons')
 
         while addons.hasNext():
-
             current = QDir(addons.next())
             addon_name = current.dirName()
-
-            if not addon_name == '.' and not addon_name== '..':
-                print(addon_name)
+            # print(current.path(),addon_name)
+            if not addon_name == '.' and not addon_name == '..':
+                self.open_tool_dict[addon_name] = {}
                 # Create action
-                self.open_tool_dict['QAction'] = QAction(addon_name, self)
+                self.open_tool_dict[addon_name]['QAction'] = QAction(addon_name, self)
+                # connect command to action
+                self.open_tool_dict[addon_name]['QAction'].triggered.connect(lambda k=addon_name, n=None: self.open_generic_tool_tab(k,addon_name))
+                # Add to menu tool
+                self.ui.menuTools.addAction(self.open_tool_dict[addon_name]['QAction'])
 
-                # Tool instance
-                self.open_tool_dict['process'] = tool = globals()[addon_name]
-                # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
-                # self.open_tool_dict['QAction'].setShortcut('...')
-                # self.open_tool_dict['QAction'].setStatusTip('...')
-
-                self.open_tool_dict['QAction'].triggered.connect(lambda k=addon_name, t=tool:self.open_generic_tool(k, t))
-                #
-
-                # menubar = self.menuBar()
-                # fileMenu = menubar.addMenu('&File')
-                self.ui.menuTools.addAction(self.open_tool_dict['QAction'])
+        # while addons.hasNext():
+        #
+        #     current = QDir(addons.next())
+        #     addon_name = current.dirName()
+        #
+        #     if not addon_name == '.' and not addon_name== '..':
+        #         self.open_tool_dict[addon_name] = {}
+        #         # Create action
+        #         self.open_tool_dict[addon_name]['QAction'] = QAction(addon_name, self)
+        #
+        #         # Tool instance
+        #         self.open_tool_dict[addon_name]['process'] = tool = globals()[addon_name]
+        #
+        #         # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
+        #         # self.open_tool_dict[addon_name]['QAction'].setShortcut('...')
+        #         # self.open_tool_dict[addon_name]['QAction'].setStatusTip('...')
+        #
+        #         self.open_tool_dict[addon_name]['QAction'].triggered.connect(lambda k=addon_name, t=tool:self.open_generic_tool_tab(k, t))
+        #         #
+        #
+        #         # menubar = self.menuBar()
+        #         # fileMenu = menubar.addMenu('&File')
+        #         self.ui.menuTools.addAction(self.open_tool_dict[addon_name]['QAction'])
 
         # Treeview supplementary widgets
         self.ui.tree_file_browse_button.clicked.connect(self.browse_treeview)
@@ -164,11 +185,17 @@ class MainWindow(QMainWindow):
         new_tab = QWidget()
 
         # Adding correspondence
-        self.widget_plaintextedit[new_tab] = CodeEditor()
-        self.plaintextedit_path[self.widget_plaintextedit[new_tab]] = None
+        # self.widget_plaintextedit[new_tab] = CodeEditor()
+        # self.plaintextedit_path[self.widget_plaintextedit[new_tab]] = None
+
+        self.widget_tool[new_tab] = CodeEditor()
+        self.plaintextedit_path[self.widget_tool[new_tab]] = None
+
 
         # No text wraping
-        self.widget_plaintextedit[new_tab].setLineWrapMode(QPlainTextEdit.NoWrap)
+        #self.widget_plaintextedit[new_tab].setLineWrapMode(QPlainTextEdit.NoWrap)
+
+        self.widget_tool[new_tab].setLineWrapMode(QPlainTextEdit.NoWrap)
 
         # Define Layout
         layout = QHBoxLayout()
@@ -177,7 +204,9 @@ class MainWindow(QMainWindow):
         new_tab.setLayout(layout)
 
         # Add QPlainTextEdit inside the layout
-        layout.addWidget(self.widget_plaintextedit[new_tab])
+        # layout.addWidget(self.widget_plaintextedit[new_tab])
+
+        layout.addWidget(self.widget_tool[new_tab])
 
         # Add Tab
         self.ui.tabWidget.addTab(new_tab, title)
@@ -186,13 +215,21 @@ class MainWindow(QMainWindow):
             # Retrieve widget
             widget = self.ui.tabWidget.widget(index)
             # Delete correspondence
-            del self.widget_plaintextedit[widget]
+            # del self.widget_plaintextedit[widget]
+
+            del self.widget_tool[widget]
+
+
             # Remove tab
             self.ui.tabWidget.removeTab(index)
-    def simple_operation(self,command=None):
+    def simple_operation(self, command=None):
 
         current_widget = self.ui.tabWidget.currentWidget()
-        current_plaintextedit = self.widget_plaintextedit[current_widget]
+        # current_plaintextedit = self.widget_plaintextedit[current_widget]
+        current_plaintextedit = self.widget_tool[current_widget]
+        if not current_plaintextedit in self.plaintextedit_path.keys():
+            return False
+
         if command == 'undo':
             current_plaintextedit.undo()
         elif command == 'redo':
@@ -212,11 +249,19 @@ class MainWindow(QMainWindow):
 
     # Extra CodeEditor function
     def indexes(self):
-        return [self.ui.tabWidget.indexOf(w) for w in self.widget_plaintextedit.keys()]
+        # return [self.ui.tabWidget.indexOf(w) for w in self.widget_plaintextedit.keys()]
+        return [self.ui.tabWidget.indexOf(w) for w in self.widget_tool.keys()]
     def widgets(self):
         return [self.ui.tabWidget.widget(i) for i in self.indexes()]
     def paths(self):
-        return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
+        # return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
+        tlist = []
+        for w in self.widgets():
+            if self.widget_tool[w] in self.plaintextedit_path.keys():
+                tlist.append(self.plaintextedit_path[self.widget_tool[w]])
+        return tlist
+
+        # return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
 
     def closeEvent(self, event):
         # Inspiration
@@ -224,11 +269,13 @@ class MainWindow(QMainWindow):
         condition = True
         widgets = self.widgets()
 
-        # verify if tabs contents have been change
+        # verify if text tabs contents have been change
         for widget in widgets:
-            if self.widget_plaintextedit[widget].document().isModified():
-                index = widgets.index(widget)
-                condition = self.maybe_save(index)
+
+            if self.widget_tool[widget] in self.plaintextedit_path.keys():
+                if self.widget_tool[widget].document().isModified():
+                    index = widgets.index(widget)
+                    condition = self.maybe_save(index)
 
         if condition:
             event.accept()
@@ -295,8 +342,8 @@ class MainWindow(QMainWindow):
             widget = self.ui.tabWidget.widget(index)
 
             # Retrieve object
-            plaintextedit = self.widget_plaintextedit[widget]
-
+            # plaintextedit = self.widget_plaintextedit[widget]
+            plaintextedit = self.widget_tool[widget]
             # Storing path
             self.plaintextedit_path[plaintextedit] = file_path
 
@@ -316,7 +363,13 @@ class MainWindow(QMainWindow):
     def maybe_save(self, index):
         widget = self.ui.tabWidget.widget(index)
 
-        if not self.widget_plaintextedit[widget].document().isModified():
+         # if not text editor
+
+        if not self.widget_tool[widget] in self.plaintextedit_path.keys():
+            return True
+
+        # if not self.widget_plaintextedit[widget].document().isModified():
+        if not self.widget_tool[widget].document().isModified():
             return True
 
         self.ui.tabWidget.setCurrentWidget(widget)
@@ -395,7 +448,6 @@ class MainWindow(QMainWindow):
         self.ui.tabWidget.setTabText(current_index, os.path.basename(os.path.normpath(f)))
         return self.file_save()
 
-
     # Help menu slot
     @Slot()
     def open_terminal(self):
@@ -417,43 +469,77 @@ class MainWindow(QMainWindow):
             self.text_search.focus()
 
     # Tool menu slot
-    @Slot()
-    def open_generic_tool(self, key, tool):
+    # @Slot()
+    # def open_generic_tool(self, key, tool):
+    #
+    #     if not 'key' in self.open_tool_dict.keys():
+    #         self.open_tool_dict[key] = tool()
+    #
+    #     if self.open_tool_dict[key].isVisible():
+    #         self.open_tool_dict[key].hide()
+    #
+    #     else:
+    #         self.open_tool_dict[key].show()
+    def retrieve_widget_tab_by_name(self, name):
+        # verify if tab already exist
+        # by default the first tab have index 0
+        index = 0
+        already_exist = False
+        widgets = self.widgets()
+        indexes = self.indexes()
 
-        if not 'key' in self.open_tool_dict.keys():
-            self.open_tool_dict[key] = tool()
+        # Retrieve index
+        for i, w in zip(indexes, widgets):
 
-        if self.open_tool_dict[key].isVisible():
-            self.open_tool_dict[key].hide()
+            if self.ui.tabWidget.tabText(i) == name:
+                index = i
+                i = indexes[-1]
+                already_exist = True
+
+        if already_exist:
+            # Retrieve tab
+            return self.ui.tabWidget.widget(index)
 
         else:
-            self.open_tool_dict[key].show()
+            return already_exist
 
-    def open_generic_tool_tab(self, key, tool):
+    def open_generic_tool_tab(self, key, n):
 
-        # Create QWidget
-        new_tab = QWidget()
-        # Define Layout
-        layout = QHBoxLayout()
+        # Tool instance
+        self.open_tool_dict[key]['process'] = tool = globals()[key]
 
-        # Open new tab
-        if not 'key' in self.open_tool_dict.keys():
-            self.open_tool_dict[key] = tool()
-            layout.addWidget(self.open_tool_dict[key])
+        # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
+        # self.open_tool_dict[addon_name]['QAction'].setShortcut('...')
+        # self.open_tool_dict[addon_name]['QAction'].setStatusTip('...')
 
 
-        # Change tab
-        else:
-            pass
-            # self.open_tool_dict[key].show()
+        # verify if tab already exist
+        # Retrieve tab
+        tab = self.retrieve_widget_tab_by_name(key)
 
-        # Set layout to QWidget
-        new_tab.setLayout(layout)
+        if not tab:
 
-        # Add Tab
-        self.ui.tabWidget.addTab(new_tab, key)
+            # Open new tab
 
+            # Create QWidget
+            tab = QWidget()
 
+            # Define Layout
+            layout = QHBoxLayout()
+
+            # Set layout to QWidget
+            tab.setLayout(layout)
+
+            # Create tool instance
+            self.widget_tool[tab] = tool()
+
+            # add widget to layout
+            layout.addWidget(self.widget_tool[tab])
+
+            # Add Tab
+            self.ui.tabWidget.addTab(tab, key)
+
+        self.ui.tabWidget.setCurrentWidget(tab)
 
     # Extra Treeview
     def treeView_doubleClicked(self, index):
@@ -463,10 +549,8 @@ class MainWindow(QMainWindow):
         if os.path.isfile(path):
             # Display
             self.load(path)
-
-
     def browse_treeview(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)#QDir.currentPath())
 
         if directory:
             if self.ui.tree_file_comboBox.findText(directory) == -1:
@@ -477,14 +561,38 @@ class MainWindow(QMainWindow):
 
             self.working_directory = directory
 
+            # set working directory
             self.ui.window.set_working_directory(self.working_directory)
+
+            for key in self.open_tool_dict.keys():
+                if "process" in self.open_tool_dict[key].keys():
+
+                    widget = self.retrieve_widget_tab_by_name(key)
+                    tool = self.widget_tool[widget]
+                    tool.set_working_directory(path=self.working_directory)
     def apply_treeview(self):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:
             self.ui.model.setRootPath(directory)
             self.ui.treeView.setModel(self.ui.model)
             self.ui.treeView.setRootIndex(self.ui.model.index(directory))
+    # Same as File Browser
+    def contextMenuEvent(self, event):
+        renameAction = QAction('Rename', self)
+        deleteAction = QAction('Delete', self)
+        fileExploreAction = QAction('Open in file browser', self)
 
+        # renameAction.triggered.connect(lambda: self.renameSlot(event))
+        # deleteAction.triggered.connect(lambda: self.deleteSlot(event))
+        # fileExploreAction.triggered.connect(lambda: self.fileExploreSlot(event))
+
+        self.menu = QMenu(self)
+        self.menu.addAction(renameAction)
+        self.menu.addAction(deleteAction)
+        self.menu.addAction(fileExploreAction)
+
+        # add other required actions
+        self.menu.popup(QCursor.pos())
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -2,7 +2,7 @@ import os
 import sys
 
 from PySide6 import QtCore
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDir
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QFormLayout, QLineEdit, QLabel, QGridLayout, \
     QPushButton, QGroupBox, QSizePolicy, QDialogButtonBox
 
@@ -29,13 +29,14 @@ function = {
             'reset':lambda:os.system('make reset'),
             'data-cleanup':lambda:os.system('make data-cleanup'),
             'clean':lambda:os.system('make clean'),
-            'gbm_tmz_ov_immune_stroma_patchy':lambda:os.system('gbm_tmz_ov_immune_stroma_patchy')
+            'gbm_tmz_ov_immune_stroma_patchy':lambda:os.system('make gbm_tmz_ov_immune_stroma_patchy')
             }
+
 function = {
             'reset':lambda:print('make reset'),
             'data-cleanup':lambda:print('make data-cleanup'),
             'clean':lambda:print('make clean'),
-            'gbm_tmz_ov_immune_stroma_patchy':lambda:print('gbm_tmz_ov_immune_stroma_patchy')
+            'gbm_tmz_ov_immune_stroma_patchy':lambda:print('make gbm_tmz_ov_immune_stroma_patchy')
             }
 
 sys.path.insert(1, 'C'+path+"../SvgViewer")
@@ -46,7 +47,7 @@ from SearchComboBox import SearchComboBox
 
 class ControlPanel(QDialog):
 
-    def __init__(self, parent=None, option=True):
+    def __init__(self, parent=None, option=False):
         super().__init__()
 
         self.ui = Ui_Dialog()
@@ -54,6 +55,8 @@ class ControlPanel(QDialog):
 
         self.setWindowTitle("Control Panel")
         self.ui.label.setText('Control Panel')
+
+        self.working_directory = QDir.currentPath()
 
         self.ui.formLayout = QVBoxLayout()
 
@@ -86,14 +89,14 @@ class ControlPanel(QDialog):
         self.ui.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.ui.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        self.ui.svgViewer = svg(option=False) # Not dialog button
+        self.ui.svgViewer = svg(option=False) # No dialog button
 
         self.ui.horizontalLayout_2.addWidget(self.ui.svgViewer)
         self.ui.horizontalLayout_2.setStretch(1, 12)
 
         # File combo box browser
-        self.ui.search_combo_box = SearchComboBox()
-        self.ui.verticalLayout.addWidget(self.ui.search_combo_box)
+        # self.ui.search_combo_box = SearchComboBox()
+        # self.ui.verticalLayout.addWidget(self.ui.search_combo_box)
 
         # Button box
         if option == True:
@@ -103,4 +106,7 @@ class ControlPanel(QDialog):
             self.ui.buttonBox.accepted.connect(self.accept)
             self.ui.buttonBox.rejected.connect(self.reject)
 
-
+    def set_working_directory(self, path):
+        self.working_directory = path
+        self.ui.svgViewer.set_working_directory(path=self.working_directory)
+        # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))

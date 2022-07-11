@@ -29,6 +29,9 @@ class Template(QDialog):
 
         self.setWindowTitle("Template")
 
+    def set_working_directory(self, path):
+        self.working_directory = path
+
 
 
 

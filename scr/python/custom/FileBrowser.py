@@ -1,10 +1,10 @@
 from PySide6.QtCore import (QCoreApplication, QDir, QFile, QFileInfo,
                             QIODevice, QTextStream, QUrl, Qt, QDirIterator)
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QCursor, QAction
 from PySide6.QtWidgets import (QAbstractItemView, QComboBox,
                                QDialog, QFileDialog, QGridLayout, QHBoxLayout,
                                QHeaderView, QLabel, QProgressDialog,
-                               QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QCheckBox)
+                               QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem, QCheckBox, QMenu)
 
 
 class FileBrowser(QDialog):
@@ -20,6 +20,7 @@ class FileBrowser(QDialog):
         self._file_combo_box = self.create_combo_box("*")
         self._text_combo_box = self.create_combo_box()
         self._directory_combo_box = self.create_combo_box(QDir.currentPath())
+        self.working_directory = QDir.currentPath()
 
         file_label = QLabel("Named:")
         text_label = QLabel("Containing text:")
@@ -55,7 +56,7 @@ class FileBrowser(QDialog):
         if comboBox.findText(comboBox.currentText()) == -1:
             comboBox.addItem(comboBox.currentText())
     def browse(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory) #QDir.currentPath())
 
         if directory:
             if self._directory_combo_box.findText(directory) == -1:
@@ -169,12 +170,45 @@ class FileBrowser(QDialog):
         self._files_table.verticalHeader().hide()
         self._files_table.setShowGrid(False)
 
+        # for context menu
+
+        # https://learndataanalysis.org/source-code-how-to-implement-context-menu-to-a-qlistwidget-pyqt5-tutorial/
+        self._files_table.installEventFilter(self)
+
         self._files_table.cellActivated.connect(self.open_file_of_item)
     def open_file_of_item(self, row, column):
         item = self._files_table.item(row, 0)
 
         QDesktopServices.openUrl(QUrl(self._current_dir.absoluteFilePath(item.text())))
     def set_working_directory(self, path):
+        self.working_directory = path
         self._directory_combo_box.addItem(path)
         self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
+
+    def contextMenuEvent(self, event):
+        # https://stackoverflow.com/questions/20930764/how-to-add-a-right-click-menu-to-each-cell-of-qtableview-in-pyqt
+        renameAction = QAction('Rename', self)
+        renameAction.triggered.connect(lambda: self.renameSlot(event))
+
+        self.menu = QMenu(self)
+        self.menu.addAction(renameAction)
+
+        # add other required actions
+        self.menu.popup(QCursor.pos())
+
+    def renameSlot(self, event):
+        # get the selected row and column
+        row = self._files_table.rowAt(event.pos().y())
+        col = self._files_table.columnAt(event.pos().x())
+        # get the selected cell
+        cell = self._files_table.item(row, col)
+        # get the text inside selected cell (if any)
+        cellText = cell.text()
+        # get the widget inside selected cell (if any)
+        widget = self._files_table.cellWidget(row, col)
+        print("renaming slot called")
+
+    def open_in_file_explore(self, event):
+        print('open_in_file_explore')
+
 

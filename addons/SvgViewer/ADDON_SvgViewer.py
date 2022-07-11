@@ -31,6 +31,7 @@ class SvgViewer(QDialog):
 
         # For the listview
         dir_path = "."
+        self.working_directory = QDir.currentPath()
         self.ui.model = QFileSystemModel()
         self.ui.model.setRootPath(dir_path)
 
@@ -81,7 +82,7 @@ class SvgViewer(QDialog):
                 # Display
                 self.viewer.load(path)
     def browse_listview(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory) #QDir.currentPath())
 
         if directory:
             if self.ui.tree_file_comboBox.findText(directory) == -1:
@@ -97,3 +98,7 @@ class SvgViewer(QDialog):
             self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
             self.ui.listView.setModel(self.ui.model)
             self.ui.listView.setRootIndex(self.ui.model.index(directory))
+    def set_working_directory(self, path):
+        self.working_directory = path
+        self.ui.tree_file_comboBox.addItem(self.working_directory)
+        self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(self.working_directory))
