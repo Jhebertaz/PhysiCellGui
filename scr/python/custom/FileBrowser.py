@@ -44,12 +44,12 @@ class FileBrowser(QDialog):
         main_layout.addWidget(self._browse_button, 2, 2)
         main_layout.addWidget(self._files_table, 3, 0, 1, 3)
         main_layout.addWidget(self._files_found_label, 4, 1)
-        main_layout.addLayout(buttons_layout, 5, 0, 1, 3)
+        main_layout.addLayout(buttons_layout,5, 0, 1, 3)
 
         self.setLayout(main_layout)
 
         self.setWindowTitle("Find Files")
-        self.resize(500, 300)
+        # self.resize(500, 300)
 
     @staticmethod
     def update_combo_box(comboBox):

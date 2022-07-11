@@ -1,10 +1,9 @@
 import os
 import sys
 
-from PySide6 import QtCore
 from PySide6.QtCore import Qt, QDir
-from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QFormLayout, QLineEdit, QLabel, QGridLayout, \
-    QPushButton, QGroupBox, QSizePolicy, QDialogButtonBox
+from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
+    QDialogButtonBox
 
 # basic info
 filename = 'ADDON_ControlPanel.py'
@@ -26,24 +25,24 @@ elif sys.platform == "win32":
 from controlPanelUi import Ui_Dialog
 
 function = {
-            'reset':lambda:os.system('make reset'),
-            'data-cleanup':lambda:os.system('make data-cleanup'),
-            'clean':lambda:os.system('make clean'),
-            'gbm_tmz_ov_immune_stroma_patchy':lambda:os.system('make gbm_tmz_ov_immune_stroma_patchy')
+            'clear':lambda:os.system('make reset & make reset & make data-cleanup & make clean'),
+            # 'data-cleanup':lambda:os.system('make data-cleanup'),
+            # 'clean':lambda:os.system('make clean'),
+            'run simulation':lambda:os.system('start cmd /k  "make gbm-ov-immune-stroma-patchy-sample & make & .\gbm_ov_immune_stroma_patchy.exe"')
             }
 
-function = {
-            'reset':lambda:print('make reset'),
-            'data-cleanup':lambda:print('make data-cleanup'),
-            'clean':lambda:print('make clean'),
-            'gbm_tmz_ov_immune_stroma_patchy':lambda:print('make gbm_tmz_ov_immune_stroma_patchy')
-            }
+# function = {
+#             'reset':lambda:print('make reset'),
+#             'data-cleanup':lambda:print('make data-cleanup'),
+#             'clean':lambda:print('make clean'),
+#             'gbm_tmz_ov_immune_stroma_patchy':lambda:print('make gbm_tmz_ov_immune_stroma_patchy')
+#             }
 
 sys.path.insert(1, 'C'+path+"../SvgViewer")
 from ADDON_SvgViewer import SvgViewer as svg
 
 sys.path.insert(1,"C"+path+"/../../scr/python/custom")
-from SearchComboBox import SearchComboBox
+
 
 class ControlPanel(QDialog):
 
@@ -53,8 +52,8 @@ class ControlPanel(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        self.setWindowTitle("Control Panel")
-        self.ui.label.setText('Control Panel')
+        self.setWindowTitle("Control Panel GBM")
+        self.ui.label.setText('Control Panel GBM')
 
         self.working_directory = QDir.currentPath()
 

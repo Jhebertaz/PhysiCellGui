@@ -525,6 +525,7 @@ class MainWindow(QMainWindow):
                     widget = self.retrieve_widget_tab_by_name(key)
                     tool = self.widget_tool[widget]
                     tool.set_working_directory(path=self.working_directory)
+        os.chdir(self.working_directory)
     def apply_treeview(self):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:
