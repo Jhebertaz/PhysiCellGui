@@ -1,10 +1,8 @@
 # This Python file uses the following encoding: utf-8
 import os
 import sys
-import importlib
-from functools import partial
 
-from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator
 from PySide6.QtGui import QTextDocumentWriter, QAction, QCursor
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
     QMessageBox, QFileDialog, QDialog, QMenu
@@ -26,7 +24,6 @@ elif sys.platform == "win32":
 from custom.CodeEditor import CodeEditor
 from custom.FileBrowser import FileBrowser
 from custom.TextSearch import TextSearch
-# from custom.SvgViewer import SvgViewer
 from ui_PhysiCellGui import Ui_MainWindow
 
 

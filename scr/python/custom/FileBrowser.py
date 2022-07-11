@@ -32,7 +32,7 @@ class FileBrowser(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
         buttons_layout.addWidget(self._find_button)
-        buttons_layout.addWidget(self._check_box )
+        buttons_layout.addWidget(self._check_box)
 
         main_layout = QGridLayout()
         main_layout.addWidget(file_label, 0, 0)
@@ -184,30 +184,16 @@ class FileBrowser(QDialog):
         self.working_directory = path
         self._directory_combo_box.addItem(path)
         self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
-
     def contextMenuEvent(self, event):
         # https://stackoverflow.com/questions/20930764/how-to-add-a-right-click-menu-to-each-cell-of-qtableview-in-pyqt
         renameAction = QAction('Rename', self)
-        renameAction.triggered.connect(lambda: self.renameSlot(event))
+        # renameAction.triggered.connect(lambda: self.renameSlot(event))
 
         self.menu = QMenu(self)
         self.menu.addAction(renameAction)
 
         # add other required actions
         self.menu.popup(QCursor.pos())
-
-    def renameSlot(self, event):
-        # get the selected row and column
-        row = self._files_table.rowAt(event.pos().y())
-        col = self._files_table.columnAt(event.pos().x())
-        # get the selected cell
-        cell = self._files_table.item(row, col)
-        # get the text inside selected cell (if any)
-        cellText = cell.text()
-        # get the widget inside selected cell (if any)
-        widget = self._files_table.cellWidget(row, col)
-        print("renaming slot called")
-
     def open_in_file_explore(self, event):
         print('open_in_file_explore')
 
