@@ -1,5 +1,6 @@
 import os
 import sys
+from script.extra_function import functions as fct
 
 from PySide6.QtCore import Qt, QDir
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
@@ -10,33 +11,18 @@ filename = 'ADDON_ControlPanel.py'
 path = os.path.realpath(__file__).strip(filename)
 
 # Change directory for the script one
-os.chdir('C'+path)
+os.chdir("C"+path)
 
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     # linux or OS X
     os.system(f"pyside6-uic controlPanel.ui > controlPanelUi.py")
-
 elif sys.platform == "win32":
     # Windows
     os.system(f"pyside6-uic controlPanel.ui -o controlPanelUi.py")
 
 from controlPanelUi import Ui_Dialog
-
-function = {
-            'clear':lambda:os.system('make reset & make reset & make data-cleanup & make clean'),
-            # 'data-cleanup':lambda:os.system('make data-cleanup'),
-            # 'clean':lambda:os.system('make clean'),
-            'run simulation':lambda:os.system('start cmd /k  "make gbm-ov-immune-stroma-patchy-sample & make & .\gbm_ov_immune_stroma_patchy.exe"')
-            }
-
-# function = {
-#             'reset':lambda:print('make reset'),
-#             'data-cleanup':lambda:print('make data-cleanup'),
-#             'clean':lambda:print('make clean'),
-#             'gbm_tmz_ov_immune_stroma_patchy':lambda:print('make gbm_tmz_ov_immune_stroma_patchy')
-#             }
 
 sys.path.insert(1, 'C'+path+"../SvgViewer")
 from ADDON_SvgViewer import SvgViewer as svg
@@ -63,7 +49,7 @@ class ControlPanel(QDialog):
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.widget.sizePolicy().hasHeightForWidth())
+        # sizePolicy.setHeightForWidth(self.ui.widget.sizePolicy().hasHeightForWidth())
 
         self.ui.groupBox = QWidget()                    #QGroupBox("This Is Group Box")
         self.ui.groupBox.setSizePolicy(sizePolicy)
@@ -72,7 +58,7 @@ class ControlPanel(QDialog):
         self.button = {}
 
         # Put button on screen
-        for key, value in function.items():
+        for key, value in fct.items():
             self.label[key] = QLabel(key)
             self.button[key] = QPushButton(key)
             self.button[key].clicked.connect(value)
@@ -91,7 +77,7 @@ class ControlPanel(QDialog):
         self.ui.svgViewer = svg(option=False) # No dialog button
 
         self.ui.horizontalLayout_2.addWidget(self.ui.svgViewer)
-        self.ui.horizontalLayout_2.setStretch(1, 12)
+        self.ui.horizontalLayout_2.setStretch(1, 112)
 
         # File combo box browser
         # self.ui.search_combo_box = SearchComboBox()

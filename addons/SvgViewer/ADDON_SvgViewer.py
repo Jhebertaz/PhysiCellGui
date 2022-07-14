@@ -1,6 +1,8 @@
 import os
 import sys
-from PySide6.QtCore import QDir, QItemSelection, QStringListModel
+
+from PySide6.QtCore import QDir, QItemSelection
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox
 
@@ -24,7 +26,7 @@ from ui_SvgViewer import Ui_Dialog
 
 class SvgViewer(QDialog):
 
-    def __init__(self, parent=None, option=None):
+    def __init__(self, parent=None, option=False):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -57,6 +59,8 @@ class SvgViewer(QDialog):
 
         # Insert svg viewer
         self.viewer = QSvgWidget()
+        # self.viewer = QPaintDevice()
+        # self.viewer = QSvgRenderer()
         self.ui.svg_vertical_layout.addWidget(self.viewer)
 
         if option==None:
@@ -80,6 +84,7 @@ class SvgViewer(QDialog):
 
             if os.path.isfile(path):
                 # Display
+                # self.viewer.load(path)
                 self.viewer.load(path)
     def browse_listview(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory) #QDir.currentPath())

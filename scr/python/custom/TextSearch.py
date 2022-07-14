@@ -20,7 +20,7 @@ class TextSearch(QDialog):
     def search(self, word):
 
         parent_current_tab = self.parent.ui.tabWidget.currentWidget()
-        parent_current_document = self.parent.widget_plaintextedit[parent_current_tab]
+        parent_current_document = self.parent.widget_tool[parent_current_tab]
         found = parent_current_document.find(word)
         # parent_current_document.textCursor().setPosition(0)
 

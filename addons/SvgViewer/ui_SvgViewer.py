@@ -61,7 +61,8 @@ class Ui_Dialog(object):
 
         self.horizontalLayout.addLayout(self.svg_vertical_layout)
 
-        self.horizontalLayout.setStretch(1, 6)
+        self.horizontalLayout.setStretch(0, 1)
+        self.horizontalLayout.setStretch(1, 112)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
