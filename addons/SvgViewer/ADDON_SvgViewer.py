@@ -8,12 +8,15 @@ from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox
 
+
+
 # basic info
 filename = 'ADDON_SvgViewer.py'
 path = os.path.realpath(__file__).strip(filename)
 
 # Change directory for the script one
 os.chdir(path)
+
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
@@ -26,12 +29,24 @@ elif sys.platform == "win32":
 
 from ui_SvgViewer import Ui_Dialog
 
+sys.path.insert(1,path+"/../../scr/python/custom")
+from SearchComboBox import SearchComboBox as sc
+
+
 class SvgViewer(QDialog):
 
     def __init__(self, parent=None, option=False):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+
+        sc.browse = self.browse_listview
+        self.ui.search_box = sc()
+
+        self.ui.tree_file_comboBox = self.ui.search_box._directory_combo_box
+
+
+        self.ui.verticalLayout_2.addWidget(self.ui.search_box)
 
         # For the listview
         self.working_directory = QDir.currentPath()
@@ -51,7 +66,7 @@ class SvgViewer(QDialog):
         self.ui.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # listview supplementary widgets
-        self.ui.tree_file_browse_button.clicked.connect(self.browse_listview)
+        # self.ui.tree_file_browse_button.clicked.connect(self.browse_listview)
 
         # initiate with the current directory
         self.ui.tree_file_comboBox.addItem(QDir.currentPath())
@@ -85,6 +100,7 @@ class SvgViewer(QDialog):
             if os.path.isfile(path):
                 # Display
                 self.viewer.load(path)
+
     def browse_listview(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)
 
@@ -102,7 +118,7 @@ class SvgViewer(QDialog):
             self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
             self.ui.listView.setModel(self.ui.model)
             self.ui.listView.setRootIndex(self.ui.model.index(directory))
-    def set_working_directory(self, path):
-        self.working_directory = path
-        self.ui.tree_file_comboBox.addItem(self.working_directory)
-        self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(self.working_directory))
+    # def set_working_directory(self, path):
+    #     self.working_directory = path
+    #     self.ui.tree_file_comboBox.addItem(self.working_directory)
+    #     self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(self.working_directory))

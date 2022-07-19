@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QHBoxLayout, QComboBox, QPushButton, QSizePolicy, 
 
 
 class SearchComboBox(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, parent=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Create layout

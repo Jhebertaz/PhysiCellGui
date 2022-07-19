@@ -22,20 +22,10 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="button_horizontal_layout" stretch="2,0">
+        <layout class="QHBoxLayout" name="button_horizontal_layout" stretch="">
          <property name="topMargin">
           <number>0</number>
          </property>
-         <item>
-          <widget class="QComboBox" name="tree_file_comboBox"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="tree_file_browse_button">
-           <property name="text">
-            <string>Browse</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>
