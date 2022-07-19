@@ -1,3 +1,5 @@
+# https://python.hotexamples.com/fr/examples/PyQt4.QtGui/QFileSystemModel/setNameFilters/python-qfilesystemmodel-setnamefilters-method-examples.html
+
 import os
 import sys
 
@@ -32,19 +34,17 @@ class SvgViewer(QDialog):
         self.ui.setupUi(self)
 
         # For the listview
-        dir_path = "."
         self.working_directory = QDir.currentPath()
         self.ui.model = QFileSystemModel()
-        self.ui.model.setRootPath(dir_path)
+        self.ui.model.setRootPath(self.working_directory)
 
         # To only display svg file
-        # https://python.hotexamples.com/fr/examples/PyQt4.QtGui/QFileSystemModel/setNameFilters/python-qfilesystemmodel-setnamefilters-method-examples.html
         self.ui.model.setNameFilters(["*.svg"])
         self.ui.model.setNameFilterDisables(False)
         self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
 
         self.ui.listView.setModel(self.ui.model)
-        self.ui.listView.setRootIndex(self.ui.model.index(dir_path))
+        self.ui.listView.setRootIndex(self.ui.model.index(self.working_directory))
 
         self.ui.listView.doubleClicked.connect(self.listview_doubleClicked)
         self.ui.listView.selectionModel().selectionChanged.connect(self.listview_doubleClicked)
@@ -59,8 +59,7 @@ class SvgViewer(QDialog):
 
         # Insert svg viewer
         self.viewer = QSvgWidget()
-        # self.viewer = QPaintDevice()
-        # self.viewer = QSvgRenderer()
+
         self.ui.svg_vertical_layout.addWidget(self.viewer)
 
         if option==None:
@@ -82,12 +81,12 @@ class SvgViewer(QDialog):
 
             path = self.ui.model.filePath(idx)
 
+            # Verify it is a file
             if os.path.isfile(path):
                 # Display
-                # self.viewer.load(path)
                 self.viewer.load(path)
     def browse_listview(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory) #QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)
 
         if directory:
             if self.ui.tree_file_comboBox.findText(directory) == -1:

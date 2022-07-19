@@ -1,3 +1,7 @@
+# Inspiration
+# # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
+# # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
+
 # This Python file uses the following encoding: utf-8
 import os
 import sys
@@ -145,6 +149,8 @@ class MainWindow(QMainWindow):
         # Create an empty tab
         self.createTextTab()
 
+        self.ui.horizontalLayout_2.setStretch(0, 10)
+
     # Extra TabWidget
     def createTextTab(self, title=None):
 
@@ -152,16 +158,10 @@ class MainWindow(QMainWindow):
         new_tab = QWidget()
 
         # Adding correspondence
-        # self.widget_plaintextedit[new_tab] = CodeEditor()
-        # self.plaintextedit_path[self.widget_plaintextedit[new_tab]] = None
-
         self.widget_tool[new_tab] = CodeEditor()
         self.plaintextedit_path[self.widget_tool[new_tab]] = None
 
-
         # No text wraping
-        #self.widget_plaintextedit[new_tab].setLineWrapMode(QPlainTextEdit.NoWrap)
-
         self.widget_tool[new_tab].setLineWrapMode(QPlainTextEdit.NoWrap)
 
         # Define Layout
@@ -169,10 +169,6 @@ class MainWindow(QMainWindow):
 
         # Set layout to QWidget
         new_tab.setLayout(layout)
-
-        # Add QPlainTextEdit inside the layout
-        # layout.addWidget(self.widget_plaintextedit[new_tab])
-
         layout.addWidget(self.widget_tool[new_tab])
 
         # Add Tab
@@ -182,17 +178,12 @@ class MainWindow(QMainWindow):
             # Retrieve widget
             widget = self.ui.tabWidget.widget(index)
             # Delete correspondence
-            # del self.widget_plaintextedit[widget]
-
             del self.widget_tool[widget]
-
-
             # Remove tab
             self.ui.tabWidget.removeTab(index)
     def simple_operation(self, command=None):
 
         current_widget = self.ui.tabWidget.currentWidget()
-        # current_plaintextedit = self.widget_plaintextedit[current_widget]
         current_plaintextedit = self.widget_tool[current_widget]
         if not current_plaintextedit in self.plaintextedit_path.keys():
             return False
@@ -216,29 +207,23 @@ class MainWindow(QMainWindow):
 
     # Extra CodeEditor function
     def indexes(self):
-        # return [self.ui.tabWidget.indexOf(w) for w in self.widget_plaintextedit.keys()]
         return [self.ui.tabWidget.indexOf(w) for w in self.widget_tool.keys()]
     def widgets(self):
         return [self.ui.tabWidget.widget(i) for i in self.indexes()]
     def paths(self):
-        # return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
         tlist = []
         for w in self.widgets():
             if self.widget_tool[w] in self.plaintextedit_path.keys():
                 tlist.append(self.plaintextedit_path[self.widget_tool[w]])
         return tlist
 
-        # return [self.plaintextedit_path[self.widget_plaintextedit[w]] for w in self.widgets()]
 
     def closeEvent(self, event):
-        # Inspiration
-        # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
         condition = True
         widgets = self.widgets()
 
         # verify if text tabs contents have been change
         for widget in widgets:
-
             if self.widget_tool[widget] in self.plaintextedit_path.keys():
                 if self.widget_tool[widget].document().isModified():
                     index = widgets.index(widget)
@@ -255,7 +240,6 @@ class MainWindow(QMainWindow):
 
         # Qfile object
         file = QFile(file_path)
-
 
         if not file.open(QFile.ReadOnly):
             return False
@@ -307,19 +291,14 @@ class MainWindow(QMainWindow):
 
             # Retrieve page
             widget = self.ui.tabWidget.widget(index)
-
             # Retrieve object
-            # plaintextedit = self.widget_plaintextedit[widget]
             plaintextedit = self.widget_tool[widget]
             # Storing path
             self.plaintextedit_path[plaintextedit] = file_path
-
             # tab title
             title = os.path.basename(os.path.normpath(file_path))
-
             # Set title
             self.ui.tabWidget.setTabText(index, title)
-
             # Set data
             plaintextedit.setPlainText(text)
 
@@ -331,11 +310,9 @@ class MainWindow(QMainWindow):
         widget = self.ui.tabWidget.widget(index)
 
          # if not text editor
-
         if not self.widget_tool[widget] in self.plaintextedit_path.keys():
             return True
 
-        # if not self.widget_plaintextedit[widget].document().isModified():
         if not self.widget_tool[widget].document().isModified():
             return True
 
@@ -378,7 +355,7 @@ class MainWindow(QMainWindow):
     def file_save(self):
         # Save the current open tab
         current_widget = self.ui.tabWidget.currentWidget()
-        current_plaintextedit = self.widget_plaintextedit[current_widget]
+        current_plaintextedit = self.widget_tool[current_widget]
         current_path = self.plaintextedit_path[current_plaintextedit]
 
         if current_path in [None, ''] or current_path.startswith(":/"):
@@ -402,8 +379,7 @@ class MainWindow(QMainWindow):
         # Save the current open tab
         current_widget = self.ui.tabWidget.currentWidget()
         current_index = self.ui.tabWidget.currentIndex()
-        current_plaintextedit = self.widget_plaintextedit[current_widget]
-        # current_path = self.plaintextedit_path[current_plaintextedit]
+        current_plaintextedit = self.widget_tool[current_widget]
 
         file_dialog = QFileDialog(self, "Save as...")
         file_dialog.setAcceptMode(QFileDialog.AcceptSave)
@@ -462,8 +438,6 @@ class MainWindow(QMainWindow):
 
         # Tool instance
         self.open_tool_dict[key]['process'] = tool = globals()[key]
-
-        # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
         # self.open_tool_dict[addon_name]['QAction'].setShortcut('...')
         # self.open_tool_dict[addon_name]['QAction'].setStatusTip('...')
 
@@ -475,22 +449,16 @@ class MainWindow(QMainWindow):
         if not tab:
 
             # Open new tab
-
             # Create QWidget
             tab = QWidget()
-
             # Define Layout
             layout = QHBoxLayout()
-
             # Set layout to QWidget
             tab.setLayout(layout)
-
             # Create tool instance
             self.widget_tool[tab] = tool()
-
             # add widget to layout
             layout.addWidget(self.widget_tool[tab])
-
             # Add Tab
             self.ui.tabWidget.addTab(tab, key)
 
@@ -505,7 +473,7 @@ class MainWindow(QMainWindow):
             # Display
             self.load(path)
     def browse_treeview(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)#QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)
 
         if directory:
             if self.ui.tree_file_comboBox.findText(directory) == -1:
@@ -549,6 +517,7 @@ class MainWindow(QMainWindow):
 
         # add other required actions
         self.menu.popup(QCursor.pos())
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,10 +1,21 @@
 # Inspiration
 # # https://learndataanalysis.org/source-code-create-a-simple-python-app-to-run-command-lines-commands-pyqt5-tutorial/
 # # https://www.pythonguis.com/tutorials/pyside-qprocess-external-programs/
+# # https://doc.qt.io/qtforpython/overviews/qtuitools-textfinder-example.html
+import os
+import sys
 
 from PySide6.QtWidgets import QDialog, QMessageBox
 
-# os.system("pyside6-uic scr\ui\TextSearch.ui -o scr\python\custom\ui_TextSearch.py")
+# Refresh ui file
+if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
+    # linux or OS X
+    os.system(f"pyside6-uic ui{os.sep}..{os.sep}TextSearch.ui > .{os.sep}ui_TextSearch.py")
+elif sys.platform == "win32":
+    # Windows
+    os.system(f"pyside6-uic ..{os.sep}ui{os.sep}TextSearch.ui -o .{os.sep}ui_TextSearch.py")
+
+
 from custom.ui_TextSearch import Ui_Dialog
 
 class TextSearch(QDialog):
@@ -24,8 +35,7 @@ class TextSearch(QDialog):
         found = parent_current_document.find(word)
         # parent_current_document.textCursor().setPosition(0)
 
-        # Inspiration
-        # https://doc.qt.io/qtforpython/overviews/qtuitools-textfinder-example.html
+
         if not word:
             QMessageBox.information(self, "Empty Search Field", "The search field is empty.\nPlease enter a word and click Find.")
 

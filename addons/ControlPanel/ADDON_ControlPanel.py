@@ -1,10 +1,11 @@
 import os
+import shutil
 import sys
 from script.extra_function import functions as fct
 
-from PySide6.QtCore import Qt, QDir
+from PySide6.QtCore import Qt, QDir, QDate, QDateTime
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
-    QDialogButtonBox
+    QDialogButtonBox, QFileDialog, QInputDialog, QLineEdit, QMessageBox
 
 # basic info
 filename = 'ADDON_ControlPanel.py'
@@ -26,6 +27,8 @@ from controlPanelUi import Ui_Dialog
 
 sys.path.insert(1, 'C'+path+"../SvgViewer")
 from ADDON_SvgViewer import SvgViewer as svg
+
+
 
 sys.path.insert(1,"C"+path+"/../../scr/python/custom")
 
@@ -51,18 +54,20 @@ class ControlPanel(QDialog):
         sizePolicy.setVerticalStretch(0)
         # sizePolicy.setHeightForWidth(self.ui.widget.sizePolicy().hasHeightForWidth())
 
-        self.ui.groupBox = QWidget()                    #QGroupBox("This Is Group Box")
+        self.ui.groupBox = QWidget()
         self.ui.groupBox.setSizePolicy(sizePolicy)
 
         self.label = {}
         self.button = {}
 
         # Put button on screen
+        fct["specific_export_output"] = lambda:self.specific_export_output()
         for key, value in fct.items():
             self.label[key] = QLabel(key)
             self.button[key] = QPushButton(key)
             self.button[key].clicked.connect(value)
             self.ui.formLayout.addWidget(self.button[key]) #, self.button[key])
+
 
         self.ui.groupBox.setLayout(self.ui.formLayout)
         self.ui.scroll = QScrollArea()
@@ -77,7 +82,7 @@ class ControlPanel(QDialog):
         self.ui.svgViewer = svg(option=False) # No dialog button
 
         self.ui.horizontalLayout_2.addWidget(self.ui.svgViewer)
-        self.ui.horizontalLayout_2.setStretch(1, 112)
+        self.ui.horizontalLayout_2.setStretch(1, 10)
 
         # File combo box browser
         # self.ui.search_combo_box = SearchComboBox()
@@ -95,3 +100,78 @@ class ControlPanel(QDialog):
         self.working_directory = path
         self.ui.svgViewer.set_working_directory(path=self.working_directory)
         # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
+
+    def specific_export_output(self):
+        source = str(QFileDialog.getExistingDirectory(self, "Select Directory Source"))
+        destination = self.save_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory Destination"))
+        project_name, ok = QInputDialog.getText(self, 'Name form', 'Project Name:')
+        dest_fold = f"{destination}/{project_name}"
+        dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
+
+        # progress  = flp()
+        # progress.copyFolder(src=source, dst=destination)
+        # progress.exec()
+
+
+
+
+        # if "save_folder" in self.__dict__.keys():
+        #
+        #     # confirm source folder
+        #     msgBox = QMessageBox()
+        #     msgBox.setText(f"Save folder set to {self.working_directory}")
+        #     msgBox.setInformativeText("Do you want to change the save folder?")
+        #     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Abort)
+        #
+        #     result = msgBox.exec()
+        #
+        #     if result == QMessageBox.Yes:
+        #         # do yes-action
+        #         source = str(QFileDialog.getExistingDirectory(self, "Select Source Destination"))
+        #     else:
+        #         # do no-action
+        #         source = self.working_directory
+        #
+        #     # confirm save folder
+        #     msgBox = QMessageBox()
+        #     msgBox.setText(f"Save folder set to {self.save_folder}")
+        #     msgBox.setInformativeText("Do you want to change the save folder?")
+        #     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No | QMessageBox.Abort)
+        #
+        #     result = msgBox.exec()
+        #
+        #     if result == QMessageBox.Yes:
+        #         # do yes-action
+        #         destination = self.save_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory Destination"))
+        #     else:
+        #         # do no-action
+        #         destination = self.save_folder
+        #
+        # else:
+        #     source = str(QFileDialog.getExistingDirectory(self, "Select Directory Source"))
+        #     destination = self.save_folder = str(QFileDialog.getExistingDirectory(self, "Select Directory Destination"))
+        #
+        #
+        #
+        # project_name, ok = QInputDialog.getText(self, 'Name form', 'Project Name:')
+        #
+        # # Incomplete
+        # if not ok and QDir.exists(QDir(source)) and QDir.exists(QDir(destination)):
+        #     msgBox = QMessageBox()
+        #     msgBox.setText("Failed to export data")
+        #     msgBox.exec()
+        #     return
+        #
+        # dest_fold = f"{destination}/{project_name}"
+        # dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
+
+
+        # Copy data should be in seprate thread
+        # shutil.copytree(source, dest_fold)
+
+        # if QDir.exists(QDir(dest_fold)):
+        # QDate.currentDate().getDate()
+        # date = '_'.join(list(map(str, list(QDateTime.currentDateTime().date()))))
+        # time = '_'.join(list(map(str, list(QDateTime.currentDateTime().time()))))
+
+
