@@ -6,7 +6,7 @@ from script.extra_function import functions as fct
 
 from PySide6.QtCore import Qt, QDir, QDate, QDateTime
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
-    QDialogButtonBox, QFileDialog, QInputDialog, QLineEdit, QMessageBox
+    QDialogButtonBox, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QHBoxLayout
 
 # basic info
 filename = 'ADDON_ControlPanel.py'
@@ -14,7 +14,6 @@ path = os.path.realpath(__file__).strip(filename)
 
 # Change directory for the script one
 os.chdir("C"+path)
-
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
@@ -44,19 +43,27 @@ class ControlPanel(QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Control Panel GBM")
-        self.ui.label.setText('Control Panel GBM')
 
+
+        # Horizontal layout for main widget
+        self.ui.main_horizontal_layout = QHBoxLayout(self.ui.widget)
+
+        # 
         self.working_directory = QDir.currentPath()
-
+        
+        # For button
         self.ui.formLayout = QVBoxLayout()
-
+        
+        # Left 
+        self.ui.groupBox = QWidget()
+        
         # Setting up for the widget
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         # sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
 
-        self.ui.groupBox = QWidget()
         self.ui.groupBox.setSizePolicy(sizePolicy)
+        self.ui.groupBox.setLayout(self.ui.formLayout)
 
         self.label = {}
         self.button = {}
@@ -70,10 +77,9 @@ class ControlPanel(QDialog):
             self.ui.formLayout.addWidget(self.button[key]) #, self.button[key])
 
 
-        self.ui.groupBox.setLayout(self.ui.formLayout)
+        
         self.ui.scroll = QScrollArea()
-
-        self.ui.horizontalLayout_2.addWidget(self.ui.scroll)
+        self.ui.main_horizontal_layout.addWidget(self.ui.scroll)
 
         self.ui.scroll.setWidget(self.ui.groupBox)
         self.ui.scroll.setWidgetResizable(True)
@@ -82,8 +88,8 @@ class ControlPanel(QDialog):
 
         self.ui.svgViewer = svg(option=False) # No dialog button
 
-        self.ui.horizontalLayout_2.addWidget(self.ui.svgViewer)
-        self.ui.horizontalLayout_2.setStretch(1, 10)
+        self.ui.main_horizontal_layout.addWidget(self.ui.svgViewer)
+        self.ui.main_horizontal_layout.setStretch(1, 10)
 
 
         # Button box
@@ -100,6 +106,7 @@ class ControlPanel(QDialog):
     def set_working_directory(self, path):
         self.working_directory = path
         self.ui.svgViewer.set_working_directory(path=self.working_directory)
+
         # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
 
     def specific_export_output(self):

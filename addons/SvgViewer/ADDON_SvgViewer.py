@@ -4,7 +4,7 @@ import os
 import sys
 
 from PySide6.QtCore import QDir, QItemSelection
-from PySide6.QtSvg import QSvgRenderer
+# from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtSvgWidgets import QSvgWidget
 from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox, QHBoxLayout, \
     QListView, QWidget, QVBoxLayout, QSizePolicy
@@ -40,6 +40,7 @@ class SvgViewer(QDialog, sc):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.setWindowTitle("SVG Viewer")
 
 
         # Horizontal layout for main widget
@@ -116,7 +117,11 @@ class SvgViewer(QDialog, sc):
             self.ui.buttonBox.accepted.connect(self.accept)
             self.ui.buttonBox.rejected.connect(self.reject)
 
-        self.setWindowTitle("SVG Viewer")
+        self.ui.left_vertical_layout.setSpacing(0)
+        self.ui.left_vertical_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.ui.main_horizontal_layout.setSpacing(0)
+        self.ui.main_horizontal_layout.setContentsMargins(0, 0, 0, 0)
 
     def listview_doubleClicked(self, index):
         if type(index) == type(QItemSelection()):
@@ -148,7 +153,4 @@ class SvgViewer(QDialog, sc):
             self.ui.model.setFilter(QDir.NoDotAndDotDot | QDir.Files)
             self.ui.listView.setModel(self.ui.model)
             self.ui.listView.setRootIndex(self.ui.model.index(directory))
-    # def set_working_directory(self, path):
-    #     self.working_directory = path
-    #     self.ui.tree_file_comboBox.addItem(self.working_directory)
-    #     self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(self.working_directory))
+

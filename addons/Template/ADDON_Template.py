@@ -1,6 +1,9 @@
 import os
 import sys
-from PySide6.QtWidgets import QDialog
+
+
+from PySide6.QtGui import QFont, Qt
+from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout
 
 # basic info
 filename = 'ADDON_Template.py'
@@ -27,7 +30,26 @@ class Template(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
+        # Title
         self.setWindowTitle("Template")
+
+        # Horizontal layout for main widget
+        self.ui.main_horizontal_layout = QHBoxLayout(self.ui.widget)
+
+        # Label
+        self.ui.label = QLabel("Template")
+
+        # Label option
+        self.ui.label.setFont(QFont('Times font', 25))
+        self.ui.label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+
+        # Add label to layout
+        self.ui.main_horizontal_layout.addWidget(self.ui.label)
+
+
+
+
+
 
     def set_working_directory(self, path):
         self.working_directory = path
