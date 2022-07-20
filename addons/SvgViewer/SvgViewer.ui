@@ -6,37 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>508</width>
-    <height>426</height>
+    <width>884</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,112">
-     <property name="spacing">
-      <number>0</number>
+    <widget class="QWidget" name="widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QHBoxLayout" name="button_horizontal_layout" stretch="">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-        </layout>
-       </item>
-       <item>
-        <widget class="QListView" name="listView"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QVBoxLayout" name="svg_vertical_layout"/>
-     </item>
-    </layout>
+    </widget>
    </item>
   </layout>
  </widget>

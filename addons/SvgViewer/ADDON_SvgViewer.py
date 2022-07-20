@@ -6,9 +6,8 @@ import sys
 from PySide6.QtCore import QDir, QItemSelection
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtSvgWidgets import QSvgWidget
-from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox
-
-
+from PySide6.QtWidgets import QDialog, QFileDialog, QFileSystemModel, QAbstractItemView, QDialogButtonBox, QHBoxLayout, \
+    QListView, QWidget, QVBoxLayout, QSizePolicy
 
 # basic info
 filename = 'ADDON_SvgViewer.py'
@@ -33,20 +32,41 @@ sys.path.insert(1,path+"/../../scr/python/custom")
 from SearchComboBox import SearchComboBox as sc
 
 
-class SvgViewer(QDialog):
+
+
+class SvgViewer(QDialog, sc):
 
     def __init__(self, parent=None, option=False):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
+
+        # Horizontal layout for main widget
+        self.ui.main_horizontal_layout = QHBoxLayout(self.ui.widget)
+
+        # Left Vertical layout
+        self.ui.left_widget = QWidget()
+        self.ui.left_vertical_layout = QVBoxLayout()
+
+        self.ui.left_widget.setLayout(self.ui.left_vertical_layout)
+        self.ui.main_horizontal_layout.addWidget(self.ui.left_widget)
+
+
+        # update function to sc class
         sc.browse = self.browse_listview
+
+        # Browse bar
         self.ui.search_box = sc()
+        self.ui.left_vertical_layout.addWidget(self.ui.search_box)
 
-        self.ui.tree_file_comboBox = self.ui.search_box._directory_combo_box
+        # equivalence
+        self._directory_combo_box = self.ui.search_box._directory_combo_box
 
+        # listView
+        self.ui.listView = QListView()
+        self.ui.left_vertical_layout.addWidget(self.ui.listView)
 
-        self.ui.verticalLayout_2.addWidget(self.ui.search_box)
 
         # For the listview
         self.working_directory = QDir.currentPath()
@@ -65,17 +85,28 @@ class SvgViewer(QDialog):
         self.ui.listView.selectionModel().selectionChanged.connect(self.listview_doubleClicked)
         self.ui.listView.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        # listview supplementary widgets
-        # self.ui.tree_file_browse_button.clicked.connect(self.browse_listview)
 
         # initiate with the current directory
-        self.ui.tree_file_comboBox.addItem(QDir.currentPath())
-        self.ui.tree_file_comboBox.currentIndexChanged.connect(self.apply_listview)
+        self._directory_combo_box.addItem(QDir.currentPath())
+        self._directory_combo_box.currentIndexChanged.connect(self.apply_listview)
 
         # Insert svg viewer
         self.viewer = QSvgWidget()
 
-        self.ui.svg_vertical_layout.addWidget(self.viewer)
+        self.ui.main_horizontal_layout.addWidget(self.viewer)
+
+        # Size Policies
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.ui.search_box.setSizePolicy(sizePolicy)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.ui.listView.setSizePolicy(sizePolicy)
+
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.viewer.setSizePolicy(sizePolicy)
+
+        self.ui.main_horizontal_layout.setStretch(0, 0)
+        self.ui.main_horizontal_layout.setStretch(1, 10)
 
         if option==None:
             # Button box
@@ -100,18 +131,17 @@ class SvgViewer(QDialog):
             if os.path.isfile(path):
                 # Display
                 self.viewer.load(path)
-
     def browse_listview(self):
         directory = QFileDialog.getExistingDirectory(self, "Find Files", self.working_directory)
 
         if directory:
-            if self.ui.tree_file_comboBox.findText(directory) == -1:
-                self.ui.tree_file_comboBox.addItem(directory)
+            if self._directory_combo_box.findText(directory) == -1:
+                self._directory_combo_box.addItem(directory)
 
-            self.ui.tree_file_comboBox.setCurrentIndex(self.ui.tree_file_comboBox.findText(directory))
+            self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(directory))
             self.ui.model.setRootPath(directory)
     def apply_listview(self):
-        directory = self.ui.tree_file_comboBox.currentText()
+        directory = self._directory_combo_box.currentText()
 
         if directory:
             self.ui.model.setRootPath(directory)

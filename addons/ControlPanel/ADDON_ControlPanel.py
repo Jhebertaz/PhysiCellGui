@@ -50,9 +50,8 @@ class ControlPanel(QDialog):
 
         # Setting up for the widget
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.ui.widget.sizePolicy().hasHeightForWidth())
 
         self.ui.groupBox = QWidget()
         self.ui.groupBox.setSizePolicy(sizePolicy)
@@ -84,9 +83,6 @@ class ControlPanel(QDialog):
         self.ui.horizontalLayout_2.addWidget(self.ui.svgViewer)
         self.ui.horizontalLayout_2.setStretch(1, 10)
 
-        # File combo box browser
-        # self.ui.search_combo_box = SearchComboBox()
-        # self.ui.verticalLayout.addWidget(self.ui.search_combo_box)
 
         # Button box
         if option == True:
@@ -95,6 +91,9 @@ class ControlPanel(QDialog):
 
             self.ui.buttonBox.accepted.connect(self.accept)
             self.ui.buttonBox.rejected.connect(self.reject)
+
+        self.ui.verticalLayout.setSpacing(0)
+        self.ui.verticalLayout.setContentsMargins(0,0,0,0)
 
     def set_working_directory(self, path):
         self.working_directory = path

@@ -8,9 +8,10 @@ class SearchComboBox(QWidget):
 
         # Create layout
         self.horizontal_layout = QHBoxLayout()
+        # self.horizontal_layout.addStretch(1)
+        self.horizontal_layout.setContentsMargins(0,0,0,0)
+        self.horizontal_layout.setSpacing(0)
 
-        # Set layout to widget
-        self.setLayout(self.horizontal_layout)
 
         # Combo box
         self._directory_combo_box = self.create_combo_box(QDir.currentPath())
@@ -18,14 +19,20 @@ class SearchComboBox(QWidget):
         # Search button
         self._browse_button = self.create_button("&Browse...", self.browse)
 
+        # Size policy
+        sizePolicy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
+        self._directory_combo_box.setSizePolicy(sizePolicy)
+        self._browse_button.setSizePolicy(sizePolicy)
+
         # Adding widgets to layout
         self.horizontal_layout.addWidget(self._directory_combo_box)
         self.horizontal_layout.addWidget(self._browse_button)
 
         # Set stretch
         self.horizontal_layout.setStretch(0,3)
-        self.horizontal_layout.setStretch(1,1)
 
+        # Set layout to widget
+        self.setLayout(self.horizontal_layout)
 
     @staticmethod
     def update_combo_box(comboBox):
@@ -50,5 +57,6 @@ class SearchComboBox(QWidget):
 
             self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(directory))
     def set_working_directory(self, path):
+        self.working_directory = path
         self._directory_combo_box.addItem(path)
         self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
