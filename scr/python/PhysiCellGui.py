@@ -1,15 +1,16 @@
 # Inspiration
 # # https://doc.qt.io/qtforpython/examples/example_widgets_richtext_textedit.html
 # # https://zetcode.com/gui/pysidetutorial/menusandtoolbars/
-
+# # https://s-nako.work/2020/11/how-to-add-context-menu-into-qtreewidget/
 # This Python file uses the following encoding: utf-8
 import os
+import subprocess
 import sys
 
-from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt
 from PySide6.QtGui import QTextDocumentWriter, QAction, QCursor
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
-    QMessageBox, QFileDialog, QDialog, QMenu
+    QMessageBox, QFileDialog, QDialog, QMenu, QInputDialog
 
 # basic info
 filename = 'PhysiCellGui.py'
@@ -96,6 +97,12 @@ class MainWindow(QMainWindow):
         self.ui.treeView.setColumnHidden(2, True)
         self.ui.treeView.setColumnHidden(3, True)
         self.ui.treeView.setColumnHidden(1, True)
+
+
+
+        self.ui.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.treeView.customContextMenuRequested.connect(self._show_context_menu)
+
 
         # Tab widget
         self.ui.tabWidget.tabCloseRequested.connect(self.delete_Tab)
@@ -500,23 +507,43 @@ class MainWindow(QMainWindow):
             self.ui.model.setRootPath(directory)
             self.ui.treeView.setModel(self.ui.model)
             self.ui.treeView.setRootIndex(self.ui.model.index(directory))
-    # Same as File Browser
-    def contextMenuEvent(self, event):
-        renameAction = QAction('Rename', self)
-        deleteAction = QAction('Delete', self)
-        fileExploreAction = QAction('Open in file browser', self)
 
-        # renameAction.triggered.connect(lambda: self.renameSlot(event))
-        # deleteAction.triggered.connect(lambda: self.deleteSlot(event))
-        # fileExploreAction.triggered.connect(lambda: self.fileExploreSlot(event))
+    # the function to display context menu
+    def _show_context_menu(self, position):
 
-        self.menu = QMenu(self)
-        self.menu.addAction(renameAction)
-        self.menu.addAction(deleteAction)
-        self.menu.addAction(fileExploreAction)
+        index = self.ui.treeView.selectedIndexes()[0]
+        idx = self.ui.model.index(index.row(), 1, index.parent())
+        path = self.ui.model.filePath(idx)
 
-        # add other required actions
-        self.menu.popup(QCursor.pos())
+        display_action1 = QAction("Rename")
+        display_action1.triggered.connect(lambda p=path:self.rename(path))
+
+        # display_action3 = QAction("Open")
+        # display_action3.triggered.connect(lambda p=path:self.open(path))
+
+        display_action2 = QAction("Delete")
+        display_action2.triggered.connect(lambda p=path:self.delete(path))
+
+        menu = QMenu(self.ui.treeView)
+        menu.addAction(display_action1)
+        menu.addAction(display_action2)
+
+        menu.exec(self.ui.treeView.mapToGlobal(position))
+
+    # the action executed when menu is clicked
+    def rename(self,path):
+        text, ok = QInputDialog.getText(self, 'Rename', 'New name')
+        if ok:
+            file = QFile(path)
+            file.rename(file.fileName(),text)
+    def open(self, path):
+        # Linux MacOs
+        # Windows
+        pass
+    def delete(self, path):
+        if QFile.exists(path):
+            QFile.remove(path)
+
 
 
 if __name__ == "__main__":

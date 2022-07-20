@@ -12,7 +12,6 @@ class SearchComboBox(QWidget):
         self.horizontal_layout.setContentsMargins(0,0,0,0)
         self.horizontal_layout.setSpacing(0)
 
-
         # Combo box
         self._directory_combo_box = self.create_combo_box(QDir.currentPath())
 
