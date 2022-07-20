@@ -58,7 +58,6 @@ os.chdir("C"+realpath)
 
 class MainWindow(QMainWindow):
 
-
     def __init__(self):
         super(MainWindow, self).__init__()
 

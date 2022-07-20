@@ -8,25 +8,25 @@ from PySide6.QtCore import QCoreApplication, QFile, QDir, QDirIterator
 from PySide6.QtWidgets import QProgressDialog, QDialog, QHBoxLayout, QPushButton, QFileDialog
 
 
-class FileCopyProgress(QDialog):
+class QFileCopyProgress(QDialog):
     def __init__(self, parent=None, *args, **kwargs):
-
         super().__init__(parent)
-        self.main_layout = QHBoxLayout()
-        self.setLayout( self.main_layout )
 
-        self.button = QPushButton()
-        self.button.clicked.connect(lambda: self.copy_files())
-        self.main_layout.addWidget(self.button)
+        # self.main_layout = QHBoxLayout()
+        # self.setLayout(self.main_layout)
+        #
+        # self.button = QPushButton()
+        # self.button.clicked.connect(lambda: self.copy_files())
+        # self.main_layout.addWidget(self.button)
 
     # Vanilla
     @staticmethod
     def copy_loop(scr, dest):
-        file_list = FileCopyProgress.recur_file_list(scr)
+        file_list = QFileCopyProgress.recur_file_list(scr)
         n = 0
 
         for file in file_list:
-            FileCopyProgress.copy_file(file, dest)
+            QFileCopyProgress.copy_file(file, dest)
     @staticmethod
     def copy_file(scr, dest):
         try:
@@ -43,13 +43,13 @@ class FileCopyProgress(QDialog):
                 yield os.path.join(roots, f)
 
             for d in dirnames:
-                FileCopyProgress.recur_file_list(os.path.join(roots, d))
+                QFileCopyProgress.recur_file_list(os.path.join(roots, d))
     @staticmethod
     def file_counter(scr):
         # folder path
         count = 0
 
-        for f in FileCopyProgress.recur_file_list(scr):
+        for f in QFileCopyProgress.recur_file_list(scr):
             count+=1
 
         return count
@@ -67,11 +67,11 @@ class FileCopyProgress(QDialog):
 
 
         # copy tree before
-        FileCopyProgress.Qcopy_tree(scr, dest)
+        QFileCopyProgress.Qcopy_tree(scr, dest)
         # number of file to copy
-        n = FileCopyProgress.Qfile_counter(scr)
+        n = QFileCopyProgress.Qfile_counter(scr)
         # file generator
-        files_to_copy = FileCopyProgress.Qrecur_file_list(scr)
+        files_to_copy = QFileCopyProgress.Qrecur_file_list(scr)
         # counter
         i = 0
         # list of file who failed to be copy
@@ -151,7 +151,7 @@ class FileCopyProgress(QDialog):
 # # Only needed for access to command line arguments
 # import sys
 # 
-# # test = FileCopyProgress()
+# # test = QFileCopyProgress()
 # # test.copy_file('.',r'C:\Users\Julien\Documents')
 # 
 # # You need one (and only one) QApplication instance per application.
@@ -160,7 +160,7 @@ class FileCopyProgress(QDialog):
 # app = QApplication(sys.argv)
 # 
 # # Create a Qt widget, which will be our window.
-# window = FileCopyProgress()
+# window = QFileCopyProgress()
 # 
 # 
 # window.show()  # IMPORTANT!!!!! Windows are hidden by default.
