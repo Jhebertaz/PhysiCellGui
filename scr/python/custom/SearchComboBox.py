@@ -28,7 +28,9 @@ class SearchComboBox(QWidget):
         self.horizontal_layout.addWidget(self._browse_button)
 
         # Set stretch
-        self.horizontal_layout.setStretch(0,3)
+        # self.horizontal_layout.setStretch(0,0)
+        # self.horizontal_layout.setStretch(1,2)
+
 
         # Set layout to widget
         self.setLayout(self.horizontal_layout)

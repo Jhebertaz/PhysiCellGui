@@ -65,6 +65,10 @@ class QFileCopyProgress(QDialog):
         if scr == None == dest:
             return False
 
+        if not QDir(dest).exists():
+            QDir().mkpath(dest)
+
+
 
         # copy tree before
         QFileCopyProgress.Qcopy_tree(scr, dest)
@@ -100,7 +104,7 @@ class QFileCopyProgress(QDialog):
             source = rf"{scr}/{f}"
 
 
-            # print(shutil.copy2(source, destination))
+            # shutil.copy2(source, destination)
             if not QFile.copy(source, destination):
                 failed_to_copy.append(f)
 
@@ -143,6 +147,7 @@ class QFileCopyProgress(QDialog):
                 pass
             else:
                 destination = dest+im.replace(scr,"")
+                # QDir().mkdir(destination)
                 QDir().mkpath(destination)
 
 

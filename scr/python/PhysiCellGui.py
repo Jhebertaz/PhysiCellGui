@@ -156,6 +156,7 @@ class MainWindow(QMainWindow):
         self.createTextTab()
 
         self.ui.horizontalLayout_2.setStretch(0, 10)
+        self.ui.horizontalLayout_2.setStretch(1, 10)
 
     # Extra TabWidget
     def createTextTab(self, title=None):

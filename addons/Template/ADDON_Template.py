@@ -46,11 +46,6 @@ class Template(QDialog):
         # Add label to layout
         self.ui.main_horizontal_layout.addWidget(self.ui.label)
 
-
-
-
-
-
     def set_working_directory(self, path):
         self.working_directory = path
 

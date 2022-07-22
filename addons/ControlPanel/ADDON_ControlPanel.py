@@ -1,12 +1,11 @@
 import os
-import shutil
 import sys
-from script.extra_function import functions as fct
 
-
-from PySide6.QtCore import Qt, QDir, QDate, QDateTime
+from PySide6.QtCore import Qt, QDir, QDateTime
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
-    QDialogButtonBox, QFileDialog, QInputDialog, QLineEdit, QMessageBox, QHBoxLayout
+    QDialogButtonBox, QFileDialog, QInputDialog, QHBoxLayout
+
+from script.extra_function import *
 
 # basic info
 filename = 'ADDON_ControlPanel.py'
@@ -29,11 +28,6 @@ sys.path.insert(1, 'C'+path+"../SvgViewer")
 from ADDON_SvgViewer import SvgViewer as svg
 
 
-
-sys.path.insert(1,"C"+path+"/../../scr/python/custom")
-from FileCopyProgress import QFileCopyProgress as sc
-
-
 class ControlPanel(QDialog):
 
     def __init__(self, parent=None, option=False):
@@ -43,7 +37,6 @@ class ControlPanel(QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle("Control Panel GBM")
-
 
         # Horizontal layout for main widget
         self.ui.main_horizontal_layout = QHBoxLayout(self.ui.widget)
@@ -69,15 +62,15 @@ class ControlPanel(QDialog):
         self.button = {}
 
         # Put button on screen
-        fct["specific_export_output"] = lambda:self.specific_export_output()
-        for key, value in fct.items():
+        functions["specific_export_output"] = lambda: specific_export_output(parent=self,source=r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output", destination=r"C:\Users\Julien\Documents\test\normal", project_name="GBM")
+        functions["progress_bar"] = lambda:self.simulation()
+
+        for key, value in functions.items():
             self.label[key] = QLabel(key)
             self.button[key] = QPushButton(key)
             self.button[key].clicked.connect(value)
             self.ui.formLayout.addWidget(self.button[key]) #, self.button[key])
 
-
-        
         self.ui.scroll = QScrollArea()
         self.ui.main_horizontal_layout.addWidget(self.ui.scroll)
 
@@ -109,19 +102,33 @@ class ControlPanel(QDialog):
 
         # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
 
-    def specific_export_output(self):
+    # def specific_export_output(self,source=None,destination=None,project_name=None):
+    #     if not source:
+    #         source = QFileDialog.getExistingDirectory(self, "Select Directory Source")
+    #     if not destination:
+    #         destination = QFileDialog.getExistingDirectory(self, "Select Directory Destination")
+    #     if not project_name:
+    #         project_name, ok3 = QInputDialog.getText(self, 'Name form', 'Project Name:')
+    #     else:
+    #         ok3 = True
+    #
+    #     if ok3 and source and destination:
+    #         dest_fold = f"{destination}/{project_name}"
+    #         dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
+    #         # Should be created else where
+    #
+    #         insta = sc(parent=self)
+    #         insta.copy_files(scr=source, dest=dest_fold)
+    #     return dest_fold
 
-        source = QFileDialog.getExistingDirectory(self, "Select Directory Source")
-        destination = QFileDialog.getExistingDirectory(self, "Select Directory Destination")
-        project_name, ok3 = QInputDialog.getText(self, 'Name form', 'Project Name:')
+    def simulation(self):
+        p = 'gbm-ov-immune-stroma-patchy-sample'
+        n = 'gbm_ov_immune_stroma_patchy.exe'
+        os.system(f'start cmd /c  "make {p} & make & .\{n}"')
+        progress_bar = SimulationProgress(parent=self)
 
 
-        if ok3 and source and destination:
-            dest_fold = f"{destination}/{project_name}"
-            dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
 
-            insta = sc(parent=self)
-            insta.copy_files(scr=source, dest=dest_fold)
 
 
 
