@@ -63,6 +63,9 @@ class MainWindow(QMainWindow):
 
         self.working_directory = QDir.currentPath()
 
+        self.program_directory = os.path.join(QDir.currentPath(),"..","..").replace('/',os.sep)
+        self.program_directory = self.program_directory.replace('\\', os.sep)
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("Dev Gui")
@@ -463,7 +466,7 @@ class MainWindow(QMainWindow):
             # Set layout to QWidget
             tab.setLayout(layout)
             # Create tool instance
-            self.widget_tool[tab] = tool()
+            self.widget_tool[tab] = tool(parent=self)
             # add widget to layout
             layout.addWidget(self.widget_tool[tab])
             # Add Tab

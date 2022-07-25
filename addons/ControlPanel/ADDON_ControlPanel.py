@@ -1,9 +1,6 @@
-import os
-import sys
-
-from PySide6.QtCore import Qt, QDir, QDateTime
+from PySide6.QtCore import QDir
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
-    QDialogButtonBox, QFileDialog, QInputDialog, QHBoxLayout
+    QDialogButtonBox, QHBoxLayout
 
 from script.extra_function import *
 
@@ -12,15 +9,15 @@ filename = 'ADDON_ControlPanel.py'
 path = os.path.realpath(__file__).strip(filename)
 
 # Change directory for the script one
-os.chdir("C"+path)
+# os.chdir("C"+path)
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     # linux or OS X
-    os.system(f"pyside6-uic controlPanel.ui > controlPanelUi.py")
+    os.system(f"pyside6-uic {'C'+path}{os.sep}controlPanel.ui > {'C'+path}{os.sep}controlPanelUi.py")
 elif sys.platform == "win32":
     # Windows
-    os.system(f"pyside6-uic controlPanel.ui -o controlPanelUi.py")
+    os.system(f"pyside6-uic {'C'+path}{os.sep}controlPanel.ui -o {'C'+path}{os.sep}controlPanelUi.py")
 
 from controlPanelUi import Ui_Dialog
 
@@ -32,6 +29,8 @@ class ControlPanel(QDialog):
 
     def __init__(self, parent=None, option=False):
         super().__init__()
+
+        self.parent = parent
 
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -61,8 +60,12 @@ class ControlPanel(QDialog):
         self.label = {}
         self.button = {}
 
+
         # Put button on screen
-        functions["specific_export_output"] = lambda: specific_export_output(parent=self,source=r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output", destination=r"C:\Users\Julien\Documents\test\normal", project_name="GBM")
+        functions["specific_export_output"] = lambda: specific_export_output(parent=self,
+                                                                             source=r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
+                                                                             destination=r"C:\Users\Julien\Documents\test\normal",
+                                                                             project_name="GBM")
         functions["progress_bar"] = lambda:self.simulation()
 
         for key, value in functions.items():
@@ -102,29 +105,12 @@ class ControlPanel(QDialog):
 
         # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
 
-    # def specific_export_output(self,source=None,destination=None,project_name=None):
-    #     if not source:
-    #         source = QFileDialog.getExistingDirectory(self, "Select Directory Source")
-    #     if not destination:
-    #         destination = QFileDialog.getExistingDirectory(self, "Select Directory Destination")
-    #     if not project_name:
-    #         project_name, ok3 = QInputDialog.getText(self, 'Name form', 'Project Name:')
-    #     else:
-    #         ok3 = True
-    #
-    #     if ok3 and source and destination:
-    #         dest_fold = f"{destination}/{project_name}"
-    #         dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
-    #         # Should be created else where
-    #
-    #         insta = sc(parent=self)
-    #         insta.copy_files(scr=source, dest=dest_fold)
-    #     return dest_fold
-
     def simulation(self):
+        # simulation command
         p = 'gbm-ov-immune-stroma-patchy-sample'
         n = 'gbm_ov_immune_stroma_patchy.exe'
-        os.system(f'start cmd /c  "make {p} & make & .\{n}"')
+        program_path = self.working_directory.replace("/",os.sep)
+        os.system(f'start cmd /k  "make -C {program_path} {p} & make -C {program_path} & {program_path}{os.sep}{n}"')
         progress_bar = SimulationProgress(parent=self)
 
 

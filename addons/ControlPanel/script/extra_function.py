@@ -4,6 +4,8 @@ import time
 from PySide6.QtCore import QFile, QCoreApplication, QTimer, QDateTime, Qt
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QProgressDialog
 
+
+
 # basic info
 filename = 'extra_function.py'
 path = os.path.realpath(__file__).strip(filename)
@@ -15,7 +17,7 @@ from FileCopyProgress import QFileCopyProgress as QFCP
 def clear():
     os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
 def run_simulation(project_name, exe_file_name):
-    os.system(f'start cmd /c  "make {project_name} & make & .\{exe_file_name}"') # to keep cmd open --> cmd /c
+    os.system(f'start cmd /c  "make {project_name} & make & .{os.sep}{exe_file_name}"') # to keep cmd open --> cmd /c
 def make_gif():
     os.system('start cmd /c "make gif"')
 def specific_export_output(parent,source=None,destination=None,project_name=None):
@@ -30,12 +32,13 @@ def specific_export_output(parent,source=None,destination=None,project_name=None
 
     if ok3 and source and destination:
         dest_fold = f"{destination}/{project_name}"
-        dest_fold += QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
+        time_ = QDateTime.currentDateTime().toString(Qt.ISODate).replace(":","_")
+        dest_fold += time_
         # Should be created else where
 
         insta = QFCP(parent=parent)
         insta.copy_files(scr=source, dest=dest_fold)
-    return dest_fold
+    return dest_fold, project_name, time_
 
 
 functions = {
@@ -113,14 +116,17 @@ class SimulationProgress(QProgressDialog):
         self.counter += 1
         print("Counter: %d" % self.counter)
 
-
+        # TODO not really usable outside of specific situation
     def end_function(self):
         # Export
-        dest_fold = specific_export_output(self.parent,
-                                           source=r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
+        dest_fold, project_name, time_ = specific_export_output(self.parent,
+                                           source=os.path.join(self.parent.working_directory,'output'),
                                            destination=r"C:\Users\Julien\Documents\test\normal",
                                            project_name="GBM")
-        os.system(f'start cmd /c " magick convert {dest_fold}/s*.svg {dest_fold}/out.gif"')
+        # os.system(f'start cmd /c " magick convert {dest_fold}/s*.svg {dest_fold}/out.gif"')
+        path = os.path.join(self.parent.parent.program_directory,"addons", "ControlPanel", "script", "plot_time_cell_number.py")
+        print(path)
+        os.system(rf'start cmd /k python {path} {dest_fold} {dest_fold.replace(project_name+time_,"")} {project_name+time_}')
         return "DONE"
 
     def update_estimating_time(self):
