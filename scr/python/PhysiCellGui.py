@@ -4,11 +4,10 @@
 # # https://s-nako.work/2020/11/how-to-add-context-menu-into-qtreewidget/
 # This Python file uses the following encoding: utf-8
 import os
-import subprocess
 import sys
 
 from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt
-from PySide6.QtGui import QTextDocumentWriter, QAction, QCursor
+from PySide6.QtGui import QTextDocumentWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
     QMessageBox, QFileDialog, QDialog, QMenu, QInputDialog
 
@@ -20,7 +19,7 @@ realpath = os.path.realpath(__file__).strip(filename)
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     # linux or OS X
-    os.system(f"pyside6-uic ui{os.sep}..{os.sep}PhysiCellGui.ui > .{os.sep}ui_PhysiCellGui.py")
+    os.system(f"pyside6-uic ..{os.sep}ui{os.sep}PhysiCellGui.ui > .{os.sep}ui_PhysiCellGui.py")
 elif sys.platform == "win32":
     # Windows
     os.system(f"pyside6-uic ..{os.sep}ui{os.sep}PhysiCellGui.ui -o .{os.sep}ui_PhysiCellGui.py")

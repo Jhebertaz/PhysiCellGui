@@ -1,6 +1,6 @@
 from PySide6.QtCore import QDir
 from PySide6.QtWidgets import QDialog, QScrollArea, QVBoxLayout, QWidget, QLabel, QPushButton, QSizePolicy, \
-    QDialogButtonBox, QHBoxLayout
+    QDialogButtonBox, QHBoxLayout, QMdiArea
 
 from script.extra_function import *
 
@@ -23,6 +23,9 @@ from controlPanelUi import Ui_Dialog
 
 sys.path.insert(1, 'C'+path+"../SvgViewer")
 from ADDON_SvgViewer import SvgViewer as svg
+
+sys.path.insert(1,path+"../../scr/python/custom")
+from FileCopyProgress import QFileCopyProgress as QFCP
 
 
 class ControlPanel(QDialog):
@@ -60,14 +63,8 @@ class ControlPanel(QDialog):
         self.label = {}
         self.button = {}
 
-
-        # Put button on screen
-        functions["specific_export_output"] = lambda: specific_export_output(parent=self,
-                                                                             source=r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
-                                                                             destination=r"C:\Users\Julien\Documents\test\normal",
-                                                                             project_name="GBM")
-        functions["progress_bar"] = lambda:self.simulation()
-
+        functions["run_simulation"] = lambda : self.simulation()
+        functions["Clear"] = lambda : clear(self.working_directory)
         for key, value in functions.items():
             self.label[key] = QLabel(key)
             self.button[key] = QPushButton(key)
@@ -82,9 +79,12 @@ class ControlPanel(QDialog):
         self.ui.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.ui.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-        self.ui.svgViewer = svg(option=False) # No dialog button
+        self.ui.svgViewer = svg(option=False)
 
-        self.ui.main_horizontal_layout.addWidget(self.ui.svgViewer)
+        self.ui.mdiArea = QMdiArea()
+        self.ui.mdiArea.addSubWindow(self.ui.svgViewer)
+
+        self.ui.main_horizontal_layout.addWidget(self.ui.mdiArea)
         self.ui.main_horizontal_layout.setStretch(1, 10)
 
 
@@ -97,21 +97,49 @@ class ControlPanel(QDialog):
             self.ui.buttonBox.rejected.connect(self.reject)
 
         self.ui.verticalLayout.setSpacing(0)
-        self.ui.verticalLayout.setContentsMargins(0,0,0,0)
+        self.ui.verticalLayout.setContentsMargins(0, 0, 0, 0)
 
     def set_working_directory(self, path):
         self.working_directory = path
         self.ui.svgViewer.set_working_directory(path=self.working_directory)
 
-        # self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
 
     def simulation(self):
-        # simulation command
-        p = 'gbm-ov-immune-stroma-patchy-sample'
-        n = 'gbm_ov_immune_stroma_patchy.exe'
-        program_path = self.working_directory.replace("/",os.sep)
-        os.system(f'start cmd /k  "make -C {program_path} {p} & make -C {program_path} & {program_path}{os.sep}{n}"')
-        progress_bar = SimulationProgress(parent=self)
+
+        # Information
+        # sample_name = 'gbm-ov-tmz-immune-stroma-patchy-sample'
+        # executable_name = 'gbm_ov_tmz_immune_stroma_patchy.exe'
+        sample_name = 'gbm-ov-immune-stroma-patchy-sample'
+        executable_name = 'gbm_ov_immune_stroma_patchy.exe'
+        program_path = self.working_directory
+        data_source = os.path.join(self.working_directory, 'output')
+        data_destination = r"C:\Users\Julien\Documents\test\normal"
+        export_folder_name = "GBM"
+        time_ = QDateTime.currentDateTime().toString(Qt.ISODate).replace(":", "_")
+        export_folder_name += time_
+        export_data_folder = os.path.join(data_destination, export_folder_name)
+        plot_time_cell_number_script_path = os.path.join(self.parent.program_directory, "addons", "ControlPanel", "script", "plot_time_cell_number.py")
+
+        ## Function
+
+        # run simulation
+        run_simulation = lambda arg1=program_path, arg2=sample_name,arg3=executable_name : os.system(f'start cmd /k  "make -C {arg1} {arg2} & make -C {arg1} & {arg1}{os.sep}{arg3}"')
+
+        # Export files
+        export_file= lambda parent_=self, source=data_source, destination=export_data_folder: QFCP(parent=parent_).copy_files(scr=source, dest=destination)
+        # Make gif
+        gif = lambda destination=export_data_folder: os.system(f'start cmd /c "magick convert {destination}/s*.svg {destination}/out.gif"')
+        # Make plot_time_cell_number
+        plot1 = lambda script_path=plot_time_cell_number_script_path, destination=export_data_folder, figure_dest=data_destination, project_name=export_folder_name:os.system(rf'start cmd /c "python {script_path} {destination} {figure_dest} {project_name}"')
+        # Cleanup
+        cleanup = lambda arg1=program_path:os.system(f'start cmd /c make -C {arg1} reset & make -C {arg1} reset & make -C {arg1} data-cleanup & make -C {arg1} clean"')
+
+
+
+        run_simulation()
+        task_list = [export_file, cleanup, gif, plot1]
+        progress_bar = SimulationProgress(parent=self, end_task_list=task_list)
+
 
 
 

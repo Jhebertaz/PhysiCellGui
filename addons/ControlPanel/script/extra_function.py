@@ -4,7 +4,7 @@ import time
 from PySide6.QtCore import QFile, QCoreApplication, QTimer, QDateTime, Qt
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QProgressDialog
 
-
+import statistics
 
 # basic info
 filename = 'extra_function.py'
@@ -14,13 +14,15 @@ sys.path.insert(1,path+"../../../scr/python/custom")
 from FileCopyProgress import QFileCopyProgress as QFCP
 
 
-def clear():
-    os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
+def clear(program_path):
+    # os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
+    os.system(f'start cmd /c make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
 def run_simulation(project_name, exe_file_name):
     os.system(f'start cmd /c  "make {project_name} & make & .{os.sep}{exe_file_name}"') # to keep cmd open --> cmd /c
 def make_gif():
     os.system('start cmd /c "make gif"')
 def specific_export_output(parent,source=None,destination=None,project_name=None):
+
     if not source:
         source = QFileDialog.getExistingDirectory(parent, "Select Directory Source")
     if not destination:
@@ -38,15 +40,16 @@ def specific_export_output(parent,source=None,destination=None,project_name=None
 
         insta = QFCP(parent=parent)
         insta.copy_files(scr=source, dest=dest_fold)
+
     return dest_fold, project_name, time_
 
 
 functions = {
     "Clear" : lambda : clear(),
-    "gbm-ov-immune-stroma-patchy-sample-old" : lambda p='gbm-ov-immune-stroma-patchy-sample-old', n='gbm_ov_immune_stroma_patchy_old.exe' : run_simulation(p,n),
-    "gbm-ov-immune-stroma-patchy-sample-old-new" : lambda p='gbm-ov-immune-stroma-patchy-sample-old-new', n='gbm_ov_immune_stroma_patchy_old_new.exe' : run_simulation(p,n),
-    "gbm-ov-immune-stroma-patchy-sample" : lambda p='gbm-ov-immune-stroma-patchy-sample', n='gbm_ov_immune_stroma_patchy.exe' : run_simulation(p,n),
-    "Make gif": lambda : make_gif()
+    # "gbm-ov-immune-stroma-patchy-sample-old" : lambda p='gbm-ov-immune-stroma-patchy-sample-old', n='gbm_ov_immune_stroma_patchy_old.exe' : run_simulation(p,n),
+    # "gbm-ov-immune-stroma-patchy-sample-old-new" : lambda p='gbm-ov-immune-stroma-patchy-sample-old-new', n='gbm_ov_immune_stroma_patchy_old_new.exe' : run_simulation(p,n),
+    # "gbm-ov-immune-stroma-patchy-sample" : lambda p='gbm-ov-immune-stroma-patchy-sample', n='gbm_ov_immune_stroma_patchy.exe' : run_simulation(p,n),
+    # "Make gif": lambda : make_gif()
 }
 
 
@@ -57,54 +60,74 @@ class SimulationProgress(QProgressDialog):
         self.parent = parent
 
         self.counter_time = 0
-
-
         self.start_time = 0
         self.end_time = 0
+        self.time_delta = []
 
         self.counter = 0
         self.counter_end = 144
+
+        # Ordered ending task list
+        if not "end_task_list" in kwargs.keys():
+            self.end_task_list = [lambda:None]
+        else:
+            self.end_task_list = kwargs['end_task_list']
+
+        # Ordered ending task list
+        if not "recuring_task_list" in kwargs.keys():
+            self.recuring_task_list = [lambda: None]
+        else:
+            self.recuring_task_list = lambda parent_=self:kwargs['recuring_task_list'](parent_)
 
         self.setRange(0, self.counter_end)
         self.setWindowTitle("Simulation progress")
         self.show()
 
         self.timer = QTimer()
-        self.timer.setInterval(1000)
+        self.timer.setInterval(500)
+
+
         self.timer.timeout.connect(self.recurring_function)
         self.timer.timeout.connect(self.update_estimating_time)
         # self.timer.timeout.connect(self.recurring_timer)
         self.timer.start()
 
+    # TODO : make it usuable outside of this specific situation
     def recurring_function(self):
         # Search for new file
-        def convert_in_str(x):
-            xs = str(x)
-            base = list("00000000")
-            for n in range(len(str(xs))):
-                base[-len(xs) + n] = xs[n]
-            return ''.join(base)
+        # def convert_in_str(x):
+        #     xs = str(x)
+        #     base = list("00000000")
+        #     for n in range(len(str(xs))):
+        #         base[-len(xs) + n] = xs[n]
+        #     return ''.join(base)
 
         if self.wasCanceled():
             self.timer.stop()
             self.close()
             return
+
+
         if not QFile.exists(r"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output\final.svg"):
 
             # check for the lastest every sec svg file and took is number
-            while QFile.exists(rf"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output\snapshot{convert_in_str(self.counter + 1)}.svg"):
+            n = self.counter + 1
+            filename = 'snapshot' + "%08i" % n + '.svg'
+            if QFile.exists(rf"C:\Users\Julien\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output\{filename}"):
                 self.counter += 1
                 self.end_time = time.time()
-
-                self.counter_time = 0
                 self.update_estimating_time()
+                self.counter_time = 0
+
 
                 # self.setLabelText(f"Estimated time before finishing {} min {}")
                 self.start_time = time.time()
 
                 self.setValue(self.counter)
+                # TODO : plot1
 
                 QCoreApplication.processEvents()
+            self.update_estimating_time()
 
 
         else:
@@ -116,22 +139,17 @@ class SimulationProgress(QProgressDialog):
         self.counter += 1
         print("Counter: %d" % self.counter)
 
-        # TODO not really usable outside of specific situation
     def end_function(self):
-        # Export
-        dest_fold, project_name, time_ = specific_export_output(self.parent,
-                                           source=os.path.join(self.parent.working_directory,'output'),
-                                           destination=r"C:\Users\Julien\Documents\test\normal",
-                                           project_name="GBM")
-        # os.system(f'start cmd /c " magick convert {dest_fold}/s*.svg {dest_fold}/out.gif"')
-        path = os.path.join(self.parent.parent.program_directory,"addons", "ControlPanel", "script", "plot_time_cell_number.py")
-        print(path)
-        os.system(rf'start cmd /k python {path} {dest_fold} {dest_fold.replace(project_name+time_,"")} {project_name+time_}')
+        for task in self.end_task_list:
+            task()
         return "DONE"
-
     def update_estimating_time(self):
 
         delta_time = abs(self.end_time - self.start_time)
+
+        # self.time_delta.append(delta_time)
+
+        # delta_time = statistics.mean(self.time_delta)
         delta_step = abs(self.counter_end - self.counter)
         total_time = delta_time * delta_step
 
@@ -155,13 +173,6 @@ class SimulationProgress(QProgressDialog):
 
         if min>0 and sec>0:
             self.setLabelText(f"Estimated time before finishing {min} min {round(sec)} sec")
-
-
-
-
-
-
-
 
 # gbm_ov_immune_stroma_patchy_old_new
 # gbm_ov_immune_stroma_patchy_old
