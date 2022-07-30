@@ -65,6 +65,7 @@ class ControlPanel(QDialog):
 
         functions["run_simulation"] = lambda : self.simulation()
         functions["Clear"] = lambda : clear(self.working_directory)
+
         for key, value in functions.items():
             self.label[key] = QLabel(key)
             self.button[key] = QPushButton(key)
@@ -107,14 +108,15 @@ class ControlPanel(QDialog):
     def simulation(self):
 
         # Information
-        # sample_name = 'gbm-ov-tmz-immune-stroma-patchy-sample'
-        # executable_name = 'gbm_ov_tmz_immune_stroma_patchy.exe'
-        sample_name = 'gbm-ov-immune-stroma-patchy-sample'
-        executable_name = 'gbm_ov_immune_stroma_patchy.exe'
+        sample_name = 'gbm-ov-tmz-immune-stroma-patchy-sample'
+        executable_name = 'gbm_ov_tmz_immune_stroma_patchy.exe'
+        # sample_name = 'gbm-ov-immune-stroma-patchy-sample'
+        # executable_name = 'gbm_ov_immune_stroma_patchy.exe'
         program_path = self.working_directory
         data_source = os.path.join(self.working_directory, 'output')
         data_destination = r"C:\Users\Julien\Documents\test\normal"
-        export_folder_name = "GBM"
+        export_folder_name = "GBM_TMZ"
+        # export_folder_name = "GBM"
         time_ = QDateTime.currentDateTime().toString(Qt.ISODate).replace(":", "_")
         export_folder_name += time_
         export_data_folder = os.path.join(data_destination, export_folder_name)
@@ -130,14 +132,16 @@ class ControlPanel(QDialog):
         # Make gif
         gif = lambda destination=export_data_folder: os.system(f'start cmd /c "magick convert {destination}/s*.svg {destination}/out.gif"')
         # Make plot_time_cell_number
-        plot1 = lambda script_path=plot_time_cell_number_script_path, destination=export_data_folder, figure_dest=data_destination, project_name=export_folder_name:os.system(rf'start cmd /c "python {script_path} {destination} {figure_dest} {project_name}"')
+        plot1 = lambda script_path=plot_time_cell_number_script_path, destination=export_data_folder, figure_dest=data_destination, project_name=export_folder_name:os.system(rf'start cmd /c "python {script_path} {destination} {figure_dest} {project_name}plot_time_cell_number"')
+        # Make plot_concentration_chemokine
+        plot2 = lambda script_path=plot_time_cell_number_script_path, destination=export_data_folder, figure_dest=data_destination, project_name=export_folder_name:os.system(rf'start cmd /c "python {script_path} {destination} {figure_dest} {project_name}plot_concentration_chemokine"')
         # Cleanup
         cleanup = lambda arg1=program_path:os.system(f'start cmd /c make -C {arg1} reset & make -C {arg1} reset & make -C {arg1} data-cleanup & make -C {arg1} clean"')
 
 
 
         run_simulation()
-        task_list = [export_file, cleanup, gif, plot1]
+        task_list = [export_file, cleanup, gif, plot1, plot2]
         progress_bar = SimulationProgress(parent=self, end_task_list=task_list)
 
 

@@ -4,8 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-def plot_time_cell_number(scr, dest, figure_name):
 
+
+def plot_time_cell_number(scr, dest, figure_name):
+    plt.style.use('ipynb')
     source = scr
     destination = dest
 
@@ -70,7 +72,7 @@ def plot_time_cell_number(scr, dest, figure_name):
     #plt.plot( times, neutrophil_val, '-o', color='orange' )
 
     # export path
-    figure_path = f"{destination}\{figure_name}.png"
+    figure_path = os.path.join(destination,f"{figure_name}.png")
     plt.savefig(figure_path)
     # plt.show()
 

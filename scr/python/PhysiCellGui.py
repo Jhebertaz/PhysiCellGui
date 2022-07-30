@@ -383,6 +383,8 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f'Could not write to file "{native_fn}"')
 
         return success
+
+
     @Slot()
     def file_save_as(self):
         # Save the current open tab
