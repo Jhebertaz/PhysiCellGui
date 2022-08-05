@@ -471,11 +471,6 @@ class Plotting:
 
             return figure_path, fig, argument, legend
 
-
-
-
-
-
 # Config file manipulation
 class Config:
     def __init__(self, *args, **kwargs):
@@ -680,7 +675,7 @@ class ViewTree(QTreeWidget):
         super().__init__(*args, **kwargs)
 
         self.fill_item(self.invisibleRootItem(), value)
-        self.latest_modify_element_path_value_dict = None
+        self.modify_element_path_value_list_dict = []
         self.doubleClicked.connect(self.edit_and_store_path_value_dict)
 
     def edit_and_store_path_value_dict(self):
@@ -688,9 +683,23 @@ class ViewTree(QTreeWidget):
         if not ViewTree.is_sub_tree(self.selectedItems()[0]):
             text, ok = QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
 
-        if ok and text:
-            path_value_dict = ViewTree.modify_element(self.selectedItems()[0], text)
-            self.latest_modify_element_path_value_dict = path_value_dict
+            if ok and text:
+                path_value_dict = ViewTree.modify_element(self.selectedItems()[0], text)
+
+                if path_value_dict:
+                    if self.modify_element_path_value_list_dict:
+                        if path_value_dict == self.modify_element_path_value_list_dict[-1]:
+                            return
+
+                        else:
+                            print('change have been made')
+                            # print(last_change_path)
+                            self.modify_element_path_value_list_dict.append(path_value_dict)
+                            return
+                    else:
+                        self.modify_element_path_value_list_dict.append(path_value_dict)
+                        print('change have been made')
+                        return
 
     @staticmethod
     def modify_element(qtreewidgetitem, new_value):
@@ -781,6 +790,7 @@ class Configuration1:
         # self.args = args
 
     def init_configuration_1(self):
+
         # Dictionnary for creating subwindows
         self.subwindows_init = {
             'media_viewer':
@@ -804,15 +814,16 @@ class Configuration1:
                     'layout': None
                 },
         }
-        self.subwindows_init['media_viewer']['widget'].setTabsClosable(True)
-        self.subwindows_init['media_viewer']['widget'].tabCloseRequested.connect(self.delete_Tab)
         self.media_viewer_tab_dict = {'svg_viewer':svg(option=False)}
 
+        self.subwindows_init['media_viewer']['widget'].setTabsClosable(True)
+        self.subwindows_init['media_viewer']['widget'].tabCloseRequested.connect(self.delete_Tab)
         self.subwindows_init['media_viewer']['widget'].addTab(self.media_viewer_tab_dict['svg_viewer'], 'svg_viewer')
-        # customization to ViewTree
-        self.subwindows_init['minimal_xml_setup']['widget'].changeEvent = self.update_XML_CHANGES
 
-        # Initiate parameters to be editable in a future subwindow
+
+        # customization to ViewTree
+
+        # Initiate parameters to be editable in a future sub-windows
         self.param = {
             'program_path': None,
             'project_name': None,
@@ -826,9 +837,9 @@ class Configuration1:
             'counter_end': 0
         }
 
-        # If xml_template_file is specify then for every modification to be made
-        # this list of dict {path, value} will track
-        self._XML_CHANGES = []
+        # # If xml_template_file is specify then for every modification to be made
+        # # this list of dict {path, value} will track
+        # self._XML_CHANGES = []
 
         # The widget needed to modify parameters
         self.simulation_config_widget = {
@@ -848,7 +859,8 @@ class Configuration1:
         self.option_command = {
             "special_csv_scan": QPushButton('click to choose'),
             "run_simulation": QPushButton('click to choose'),
-            "convert_scan_to_csv":QPushButton('click to run')
+            "convert_scan_to_csv":QPushButton('click to run'),
+            "print_XML_CHANGES":QPushButton('click to run'),
         }
 
         self.populate_minimal_simulation_information()
@@ -856,7 +868,7 @@ class Configuration1:
     def populate_minimal_simulation_information(self):
         for key, value in {**self.simulation_config_widget, **self.option_command}.items():
 
-            if key in ['xml_template_file', 'csv_files', 'special_csv_scan','run_simulation','convert_scan_to_csv']:
+            if key in ['xml_template_file', 'csv_files', 'special_csv_scan','run_simulation','convert_scan_to_csv','print_XML_CHANGES']:
                 def updater():
                     pass
 
@@ -892,6 +904,10 @@ class Configuration1:
                 if key == 'run_simulation':
                     fun = self.simulation
 
+                if key == 'print_XML_CHANGES':
+
+                    fun = lambda: print("self._XML_CHANGES", self.subwindows_init['minimal_xml_setup']['widget'].modify_element_path_value_list_dict)
+
                 if key == 'convert_scan_to_csv':
                     temp_dict = Simulation.type_dict()
                     fun = lambda:Data.data_conversion_segmentation_celltypes(
@@ -917,6 +933,7 @@ class Configuration1:
 
         columns = ['file_name', 'total_cell'] + list(temp_dict2.values())
         if short.horizontalHeader().count() == 0:
+
             # Desactivate edit mode
             short.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -935,10 +952,6 @@ class Configuration1:
             short.doubleClicked.connect(self.double_click_csv_table)
                 # lambda event:Plotting.ready_to_plot_function(script_path, f'"{os.path.abspath(self.param["csv_files"][event.row()])}"')()
             # )
-
-
-
-
             # self.tableWidget.doubleClicked.connect(lambda event: Simulation.plot_for_physicell(,self.param['csv_files'][event.row()]))#print(event.row()+1, self.param['csv_files'][event.row()]))
 
         # Delete previous rows
@@ -984,18 +997,14 @@ class Configuration1:
                 self.param['csv_files'].remove(csv_file)
                 k-=1
             k+=1
-
     def init_minimal_xml_setup(self):
         short = self.subwindows_init['minimal_xml_setup']['widget']
         short.clear()
         value = Config.xml2dict(self.param['xml_template_file'])
         short.fill_item(short.invisibleRootItem(), value)
-
     def double_click_csv_table(self, event):
         csv_file = self.param["csv_files"][event.row()]
         csv_file_name = os.path.abspath(csv_file).split(os.sep)[-1].replace('.csv','')
-
-
         if not csv_file_name in self.media_viewer_tab_dict.keys():
             # get plot
             self.media_viewer_tab_dict[csv_file_name] = widget = pg.PlotWidget()
@@ -1003,8 +1012,6 @@ class Configuration1:
             self.subwindows_init['media_viewer']['widget'].addTab(widget, csv_file_name)
 
         self.subwindows_init['media_viewer']['widget'].setCurrentWidget(self.media_viewer_tab_dict[csv_file_name])
-
-
     def simulation(self):
         self.param = Simulation.test_param_dictionnary()
 
@@ -1061,18 +1068,3 @@ class Configuration1:
                 dlg.setText("One or more parameter are empty")
                 dlg.exec_()
             return
-
-    def update_XML_CHANGES(self, *args):
-        last_change_path = self.subwindows_init['minimal_xml_setup']['widget'].latest_modify_element_path_value_dict
-        if last_change_path:
-            if self._XML_CHANGES:
-                if last_change_path == self._XML_CHANGES[-1]:
-                    pass
-
-                else:
-                    print('change have been made')
-                    # print(last_change_path)
-                    self._XML_CHANGES.append(last_change_path)
-            else:
-                self._XML_CHANGES.append(last_change_path)
-                print('change have been made')
