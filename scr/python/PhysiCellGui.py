@@ -75,14 +75,8 @@ class MainWindow(QMainWindow):
         self.ui.tree_file_comboBox.currentIndexChanged.connect(self.apply_treeview)
 
         # File browser
-        # Custom function to FileBrowser class
-        def open_file_of_item(parent, row, column):
-            item = parent._files_table.item(row, 0)
-            self.load(parent._current_dir.absoluteFilePath(item.text()))
-
-        FileBrowser.open_file_of_item = open_file_of_item
-
         self.ui.window = FileBrowser()
+        self.ui.window.open_file_of_item = self.open_file_of_item
         self.ui.inside_dock_vertical_layout.addWidget(self.ui.window)
 
         # Treeview
@@ -99,11 +93,8 @@ class MainWindow(QMainWindow):
         self.ui.treeView.setColumnHidden(3, True)
         self.ui.treeView.setColumnHidden(1, True)
 
-
-
         self.ui.treeView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.treeView.customContextMenuRequested.connect(self._show_context_menu)
-
 
         # Tab widget
         self.ui.tabWidget.tabCloseRequested.connect(self.delete_Tab)
@@ -160,6 +151,11 @@ class MainWindow(QMainWindow):
         self.ui.horizontalLayout_2.setStretch(0, 10)
         self.ui.horizontalLayout_2.setStretch(1, 10)
 
+
+    # Custom function to FileBrowser class
+    def open_file_of_item(self, parent, row, column):
+        item = parent._files_table.item(row, 0)
+        self.load(parent._current_dir.absoluteFilePath(item.text()))
     # Extra TabWidget
     def createTextTab(self, title=None):
 
@@ -384,7 +380,6 @@ class MainWindow(QMainWindow):
 
         return success
 
-
     @Slot()
     def file_save_as(self):
         # Save the current open tab
@@ -504,7 +499,8 @@ class MainWindow(QMainWindow):
                     widget = self.retrieve_widget_tab_by_name(key)
                     tool = self.widget_tool[widget]
                     tool.set_working_directory(path=self.working_directory)
-        os.chdir(self.working_directory)
+
+        # os.chdir(self.working_directory)
     def apply_treeview(self):
         directory = self.ui.tree_file_comboBox.currentText()
         if directory:

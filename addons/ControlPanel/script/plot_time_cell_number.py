@@ -1,4 +1,5 @@
 import csv
+import os
 from pyMCDS import pyMCDS
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,25 +7,26 @@ import sys
 
 
 
-def plot_time_cell_number(scr, dest, figure_name):
+def plot_time_cell_number(data_source_folder, data_destination_folder, figure_name, counter_end=144, *args, **kwargs):
     plt.style.use('ipynb')
-    source = scr
-    destination = dest
+    counter_end = int(counter_end)
+    source = data_source_folder
+    destination = data_destination_folder
 
     fi = open(f"{destination}\Thsd_1500_p5X.dat", "w")
     writer = csv.writer(fi)
 
-    last_index = 144 # TODO automatic index last finder
-    times = np.zeros(last_index + 1)
-    TH_val = np.zeros(last_index + 1)
-    cancer_val = np.zeros(last_index + 1)
-    CTL_val = np.zeros(last_index + 1)
-    stroma_val = np.zeros(last_index + 1)
+    # last_index = 144 # TODO automatic index last finder
+    times = np.zeros(counter_end + 1)
+    TH_val = np.zeros(counter_end + 1)
+    cancer_val = np.zeros(counter_end + 1)
+    CTL_val = np.zeros(counter_end + 1)
+    stroma_val = np.zeros(counter_end + 1)
 
     # macrophage_val = np.zeros( last_index+1 )
     # neutrophil_val = np.zeros( last_index+1 )
 
-    for n in range( 0,last_index+1 ):
+    for n in range( 0,counter_end+1 ):
         filename='output'+"%08i"%n+'.xml'
 
         mcds=pyMCDS(filename, source)#'output')
@@ -62,12 +64,14 @@ def plot_time_cell_number(scr, dest, figure_name):
 
     # print(cancer_val[last_index])
     fi.close()
+    fig = plt.figure()
     plt.clf()
     plt.plot( times, cancer_val, '-o', color='purple' )
     plt.plot( times, TH_val, 'r-o' )
     plt.plot( times, CTL_val, 'b-o' )
     plt.plot( times, stroma_val, '-o', color='pink')
 
+    arguments = [times, cancer_val, '-o', 'purple',times, TH_val, 'r-o',times, CTL_val, 'b-o',times, stroma_val, '-o', 'pink']
     # plt.plot( times, macrophage_val, 'g-o' )
     #plt.plot( times, neutrophil_val, '-o', color='orange' )
 
@@ -80,8 +84,8 @@ def plot_time_cell_number(scr, dest, figure_name):
     # plt.plot( cx[val], cy[val], 'ro' )
     # plt.show()
 
-    return figure_path
+    return figure_path, fig, arguments
 
 if __name__ == "__main__":
-    print(sys.argv)
-    plot_time_cell_number(sys.argv[1], sys.argv[2], sys.argv[3])
+    print(*sys.argv, sep='\n')
+    plot_time_cell_number(*sys.argv[1::])

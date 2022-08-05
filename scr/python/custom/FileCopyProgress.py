@@ -35,6 +35,32 @@ class QFileCopyProgress(QDialog):
         except:
             return False
     @staticmethod
+    def create_dirtree_without_files(src, dst):
+        # getting the absolute path of the source
+        # directory
+        src = os.path.abspath(src)
+
+        # making a variable having the index till which
+        # src string has directory and a path separator
+        src_prefix = len(src) + len(os.path.sep)
+
+        # making the destination directory
+        os.makedirs(dst)
+
+        # doing os walk in source directory
+        for root, dirs, files in os.walk(src):
+            for dirname in dirs:
+                # here dst has destination directory,
+                # root[src_prefix:] gives us relative
+                # path from source directory
+                # and dirname has folder names
+                dirpath = os.path.join(dst, root[src_prefix:], dirname)
+
+                # making the path which we made by
+                # joining all of the above three
+                os.mkdir(dirpath)
+
+    @staticmethod
     def recur_file_list(scr):
         for roots, dirnames, files in os.walk(scr):
             # treat files before

@@ -14,22 +14,23 @@ filename = 'ADDON_SvgViewer.py'
 path = os.path.realpath(__file__).strip(filename)
 
 # Change directory for the script one
-os.chdir(path)
+# os.chdir(path)
 
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     # linux or OS X
-    os.system(f"pyside6-uic SvgViewer.ui > ui_SvgViewer.py")
+    os.system(f"pyside6-uic {path}{os.sep}SvgViewer.ui > {path}{os.sep}ui_SvgViewer.py")
 
 elif sys.platform == "win32":
     # Windows
-    os.system(f"pyside6-uic SvgViewer.ui -o ui_SvgViewer.py")
+    os.system(f"pyside6-uic {path}{os.sep}SvgViewer.ui -o {path}{os.sep}ui_SvgViewer.py")
 
 from ui_SvgViewer import Ui_Dialog
 
-sys.path.insert(1,path+"/../../scr/python/custom")
+sys.path.insert(1,os.path.join(path,'..','..','scr','python','custom'))
 from SearchComboBox import SearchComboBox as sc
+
 
 
 
@@ -38,10 +39,12 @@ class SvgViewer(QDialog, sc):
 
     def __init__(self, parent=None, option=False):
         super().__init__()
+
+
+
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.setWindowTitle("SVG Viewer")
-
 
         # Horizontal layout for main widget
         self.ui.main_horizontal_layout = QHBoxLayout(self.ui.widget)
@@ -54,11 +57,9 @@ class SvgViewer(QDialog, sc):
         self.ui.main_horizontal_layout.addWidget(self.ui.left_widget)
 
 
-        # update function to sc class
-        sc.browse = self.browse_listview
-
         # Browse bar
         self.ui.search_box = sc()
+        self.ui.search_box.browse = self.browse_listview
         self.ui.left_vertical_layout.addWidget(self.ui.search_box)
 
         # equivalence
@@ -93,7 +94,6 @@ class SvgViewer(QDialog, sc):
 
         # Insert svg viewer
         self.viewer = QSvgWidget()
-
         self.ui.main_horizontal_layout.addWidget(self.viewer)
 
         # Size Policies

@@ -13,7 +13,8 @@ class SearchComboBox(QWidget):
         self.horizontal_layout.setSpacing(0)
 
         # Combo box
-        self._directory_combo_box = self.create_combo_box(QDir.currentPath())
+        #QDir.currentPath()
+        self._directory_combo_box = self.create_combo_box()
 
         # Search button
         self._browse_button = self.create_button("&Browse...", self.browse)
@@ -28,8 +29,8 @@ class SearchComboBox(QWidget):
         self.horizontal_layout.addWidget(self._browse_button)
 
         # Set stretch
-        # self.horizontal_layout.setStretch(0,0)
-        # self.horizontal_layout.setStretch(1,2)
+        self.horizontal_layout.setStretch(0,3)
+        self.horizontal_layout.setStretch(1,1)
 
 
         # Set layout to widget
@@ -50,7 +51,7 @@ class SearchComboBox(QWidget):
         combo_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         return combo_box
     def browse(self):
-        directory = QFileDialog.getExistingDirectory(self, "Find Files", QDir.currentPath())
+        directory = QFileDialog.getExistingDirectory(self, "Find Directory", QDir.currentPath())
 
         if directory:
             if self._directory_combo_box.findText(directory) == -1:
@@ -61,3 +62,12 @@ class SearchComboBox(QWidget):
         self.working_directory = path
         self._directory_combo_box.addItem(path)
         self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(path))
+    def text(self):
+        return self._directory_combo_box.currentText()
+    def setText(self, directory):
+
+        if directory:
+            if self._directory_combo_box.findText(directory) == -1:
+                self._directory_combo_box.addItem(directory)
+
+            self._directory_combo_box.setCurrentIndex(self._directory_combo_box.findText(directory))
