@@ -1,7 +1,17 @@
 # PhysiCellGui
 A simple Pyside GUI for developers of PhysiCell.
 
+# Needed packages
+- PySide6
+- numpy
+- pandas
+- pyqtgraph
+- scipy
+- xmltodict
+- matplotlib
+- 
 # Terminal launch
+
 Run `.\scr\python\PhysiCellGui.py`
 
 ## File structure

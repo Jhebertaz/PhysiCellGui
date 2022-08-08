@@ -119,6 +119,7 @@ class MainWindow(QMainWindow):
         return "Done."
 
     def print_output(self, s):
+        print('print_output')
         print(s)
 
     def thread_complete(self):

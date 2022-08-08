@@ -5,12 +5,13 @@ import os
 import shutil
 
 from PySide6.QtCore import QCoreApplication, QFile, QDir, QDirIterator
-from PySide6.QtWidgets import QProgressDialog, QDialog, QHBoxLayout, QPushButton, QFileDialog
+from PySide6.QtWidgets import QProgressDialog, QDialog, QHBoxLayout, QPushButton, QFileDialog, QWidget, QProgressBar
 
 
 class QFileCopyProgress(QDialog):
     def __init__(self, parent=None, *args, **kwargs):
-        super().__init__(parent)
+        super().__init__()
+        # self.show()
 
         # self.main_layout = QHBoxLayout()
         # self.setLayout(self.main_layout)

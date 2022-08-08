@@ -6,7 +6,7 @@
 import os
 import sys
 
-from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt
+from PySide6.QtCore import QDir, QCoreApplication, QFile, Slot, QDirIterator, Qt, QTextStream
 from PySide6.QtGui import QTextDocumentWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileSystemModel, QWidget, QPlainTextEdit, QHBoxLayout, \
     QMessageBox, QFileDialog, QDialog, QMenu, QInputDialog
@@ -76,7 +76,8 @@ class MainWindow(QMainWindow):
 
         # File browser
         self.ui.window = FileBrowser()
-        self.ui.window.open_file_of_item = self.open_file_of_item
+        self.ui.window._files_table.cellDoubleClicked.connect(self.open_file_of_item)
+        # self.ui.window.open_file_of_item = self.open_file_of_item
         self.ui.inside_dock_vertical_layout.addWidget(self.ui.window)
 
         # Treeview
@@ -153,9 +154,9 @@ class MainWindow(QMainWindow):
 
 
     # Custom function to FileBrowser class
-    def open_file_of_item(self, parent, row, column):
-        item = parent._files_table.item(row, 0)
-        self.load(parent._current_dir.absoluteFilePath(item.text()))
+    def open_file_of_item(self, row, column):
+        item = self.ui.window._files_table.item(row, 0)
+        self.load(self.ui.window._current_dir.absoluteFilePath(item.text()))
     # Extra TabWidget
     def createTextTab(self, title=None):
 
@@ -366,8 +367,10 @@ class MainWindow(QMainWindow):
         if current_path in [None, ''] or current_path.startswith(":/"):
             return self.file_save_as()
 
+
         writer = QTextDocumentWriter(current_path)
         document = current_plaintextedit.document()
+
         success = writer.write(document)
         native_fn = QDir.toNativeSeparators(current_path)
 

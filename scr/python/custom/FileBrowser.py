@@ -175,7 +175,8 @@ class FileBrowser(QDialog):
         # https://learndataanalysis.org/source-code-how-to-implement-context-menu-to-a-qlistwidget-pyqt5-tutorial/
         self._files_table.installEventFilter(self)
 
-        self._files_table.cellActivated.connect(self.open_file_of_item)
+        # self._files_table.cellActivated.connect(self.open_file_of_item)
+        # self._files_table.cellDoubleClicked.connect(self.open_file_of_item)
     def open_file_of_item(self, row, column):
         item = self._files_table.item(row, 0)
 

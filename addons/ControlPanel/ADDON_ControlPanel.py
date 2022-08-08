@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QShortcut, QKeySequence
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QMdiArea
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QMdiArea, QSizePolicy, QFrame, \
+    QAbstractScrollArea, QVBoxLayout
 from script.extra_function import *
 
 # basic info
@@ -37,13 +38,29 @@ class ControlPanel(QDialog):
         self.working_directory = QDir.currentPath()
 
         # MDI Area where subwindows are
+        self.test_vertical_layout = QVBoxLayout()
+
+        self.test_widget = QWidget()
+        self.test_widget.setLayout(self.test_vertical_layout)
         self.ui.mdiArea = QMdiArea()
 
+        self.test_vertical_layout.addWidget(self.ui.mdiArea)
         ## Customize MDI Area
         self.ui.mdiArea.keyPressEvent = lambda e: ControlPanel.keyPressEvent(parent=self, event=e)
         self.ui.mdiArea.tileSubWindows()
         self.ui.mdiArea.setViewMode(QMdiArea.TabbedView)
         self.ui.mdiArea.setTabsClosable(False)
+
+        sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.ui.mdiArea.sizePolicy().hasHeightForWidth())
+        self.ui.mdiArea.setSizePolicy(sizePolicy1)
+        self.ui.mdiArea.setFrameShape(QFrame.StyledPanel)
+        self.ui.mdiArea.setFrameShadow(QFrame.Sunken)
+        self.ui.mdiArea.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.ui.mdiArea.setTabsMovable(True)
+
 
         # Shortcut to organize subwindows
         self.shortcut_tiling = QShortcut(QKeySequence('Ctrl+T'), self)
@@ -67,7 +84,7 @@ class ControlPanel(QDialog):
             self.ui.mdiArea.addSubWindow(v['widget'], Qt.CustomizeWindowHint | Qt.WindowMinMaxButtonsHint)
 
 
-        self.ui.main_horizontal_layout.addWidget(self.ui.mdiArea)
+        self.ui.main_horizontal_layout.addWidget(self.test_widget)
         self.ui.main_horizontal_layout.setStretch(1, 10)
 
         # Button box
@@ -78,8 +95,8 @@ class ControlPanel(QDialog):
             self.ui.buttonBox.accepted.connect(self.accept)
             self.ui.buttonBox.rejected.connect(self.reject)
 
-        self.ui.verticalLayout.setSpacing(0)
-        self.ui.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        # self.ui.verticalLayout.setSpacing(0)
+        # self.ui.verticalLayout.setContentsMargins(0, 0, 0, 0)
 
     def set_working_directory(self, path):
         self.working_directory = path
