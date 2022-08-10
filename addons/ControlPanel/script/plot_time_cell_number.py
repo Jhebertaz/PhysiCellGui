@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-
+script_path = os.path.realpath(__file__)
+script_name = 'plot_time_cell_number'
 
 def plot_time_cell_number(data_source_folder, data_destination_folder, figure_name, counter_end=144, *args, **kwargs):
     plt.style.use('ipynb')

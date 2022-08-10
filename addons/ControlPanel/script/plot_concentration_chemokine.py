@@ -5,6 +5,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from pyMCDS import pyMCDS
 
+script_path = os.path.realpath(__file__)
+script_name = 'plot_concentration_chemokine'
 
 def plot_concentration_chemokine(data_source_folder, data_destination_folder, figure_name, *args, **kwargs):
     plt.style.use('ipynb')

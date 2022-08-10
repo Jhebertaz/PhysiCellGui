@@ -9,9 +9,11 @@ import matplotlib.cm as cm
 
 
 
+script_path = os.path.realpath(__file__)
+script_name = 'plot_initial_state'
 
 # https://www.statology.org/pandas-select-rows-based-on-column-values/
-
+# script_path = os.path.realpath(__file__)
 def plot_initial_state(data_source_folder, data_destination_folder=None, figure_name=None, *args, **kwargs):
     # Data source must specify an csv file path with x,y,z,type as column
     source = data_source_folder

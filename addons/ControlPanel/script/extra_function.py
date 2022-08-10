@@ -18,9 +18,27 @@ from PySide6.QtWidgets import QFileDialog, QInputDialog, QTreeWidget, QTreeWidge
     QTabWidget, QProgressBar, QLabel
 
 # basic info
-
 filename = 'extra_function.py'
 path = os.path.realpath(__file__).strip(filename)
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+file_handler = logging.FileHandler(os.path.join(path,'..','..','..','out','debug_extra_function.log'))
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# file_handler2 = logging.FileHandler(os.path.join(path,'..','..','..','out','debug_extra_function.log'))
+# file_handler2.setLevel(logging.DEBUG)
+# file_handler2.setFormatter(formatter)
+
+
+
 
 sys.path.insert(1, path)
 from .plot_initial_state import plot_initial_state as pis
@@ -33,9 +51,9 @@ from ADDON_SvgViewer import SvgViewer as svg
 
 # import from custom
 sys.path.insert(1, os.path.join(path, '..', '..', '..', 'scr', 'python', 'custom'))
-from FileCopyProgress import QFileCopyProgress as QFCP
-from SearchComboBox import SearchComboBox as sc
-
+from FileCopyProgress import * #FileCopyProgress as QFCP
+from SearchComboBox import *
+from ScrollableFormWidget import *
 
 
 # gbm_ov_immune_stroma_patchy_old_new
@@ -178,7 +196,7 @@ class Data:
                 x, y = Data.mean_ind2sub(size, cell_boudaries)
 
                 cell_position = [round(x - center,4), round(y - center,4), 0, cell_type]
-                # print(*([i]+cell_position), sep='\t\t\t\t')
+                # logger.debug(*([i]+cell_position), sep='\t\t\t\t')
                 yield cell_position
 
     @staticmethod
@@ -187,6 +205,7 @@ class Data:
 
     @staticmethod
     def create_dirtree_without_files(src, dst):
+        logger.debug('create_dirtree_without_files')
         # getting the absolute path of the source
         # directory
         src = os.path.abspath(src)
@@ -213,14 +232,15 @@ class Data:
 
     @staticmethod
     def data_conversion_segmentation_celltypes(source, destination, type_dict=None):
+        logger.debug('data_conversion_segmentation_celltypes')
         try:
             dest = os.path.join(destination, source.split(os.sep)[-1])
             Data.create_dirtree_without_files(source, dest)
-        except:
 
-            print("overwriting")
-            shutil.rmtree(dest)
-            Data.create_dirtree_without_files(source, dest)
+        except:
+            logger.debug("overwriting")
+            shutil.rmtree(destination)
+            Data.create_dirtree_without_files(source, destination)
 
         # traverse root directory, and list directories as dirs and files as files
         for root, dirs, files in os.walk(source):
@@ -229,7 +249,7 @@ class Data:
             for file in files:
                 if 'nuclei_multiscale.mat' in file:
                     f_path = os.path.join(*([f"C:{os.sep}"] + path[1::] + [file]))
-                    print(f_path)
+                    # logger.debug(f_path)
                     position_file = f_path
 
                     # For each scan segmentation have a folder, not for celltypes
@@ -253,7 +273,7 @@ class Data:
 
                     # convert_to_csv
                     Data.convert_to_csv(dst, filename, data)
-                    # print(os.path.join(dst, filename))
+                    logger.debug(os.path.join(dst, filename))
 
     @staticmethod
     def scan_csv_file(source, name=None):
@@ -353,7 +373,7 @@ class Simulation:
 
 
         self.is_finish = True
-        print('finish')
+        logger.debug('finish')
 
         # Other function from args
         # for task in self.basic_task+list(self.args):
@@ -363,7 +383,7 @@ class Simulation:
     ## Function
     @staticmethod
     def cleanup(*args, **kwargs):
-        print('cleanup')
+        logger.debug('cleanup')
         program_path = kwargs['program_path']
         # os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
         # os.system(f'start cmd /k make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
@@ -375,7 +395,7 @@ class Simulation:
         return True
     @staticmethod
     def run_simulation(*args,**kwargs):
-        print('run_simulation')
+        logger.debug('run_simulation')
         program_path = kwargs['program_path']
         project_name = kwargs['project_name']
         executable_name = kwargs['executable_name']
@@ -385,28 +405,28 @@ class Simulation:
         return True
     @staticmethod
     def make_gif(*args, **kwargs):
-        print('make_gif')
+        logger.debug('make_gif')
         data_source_folder = kwargs['data_source_folder']
         data_destination_folder = kwargs['data_destination_folder']
         os.system(f'start cmd /k "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
         return f"{data_destination_folder}/out.gif"
     @staticmethod
     def specific_export_output(data_source_folder=None, data_destination_folder=None, *args, **kwargs):
-        print('specific_export_output')
-        print('truc',data_source_folder, data_destination_folder)
+        logger.debug('specific_export_output')
+        logger.debug('truc',data_source_folder, data_destination_folder)
         if not data_source_folder:
             data_source_folder = QFileDialog.getExistingDirectory(None, "Select Directory Source")
         if not data_destination_folder:
             data_destination_folder = QFileDialog.getExistingDirectory(None, "Select Directory Destination")
 
         if data_source_folder and data_destination_folder:
-            insta = QFCP()
+            insta = FileCopyProgress()
             insta.copy_files(scr=data_source_folder, dest=data_destination_folder)
 
         return data_destination_folder
 
     def verification(self, *args, **kwargs):
-        print('verification')
+        logger.debug('verification')
         ok_bool_list = [True]
         param = self.kwargs
         for k, v in param.items():
@@ -431,6 +451,7 @@ class Plotting:
     @staticmethod
     def outside_ready_to_plot_function(*args, **kwargs):
         """return a ready_to_run function"""
+
         return lambda:Plotting.outside_plot_function(*args, **kwargs)
 
     @staticmethod
@@ -463,7 +484,7 @@ class Plotting:
                      "plot_time_cell_number":lambda *argss, **kwargss :ptcn(*argss, **kwargss)}
 
         if 'plot_type' in kwargs:
-            figure_path, fig, argument, legend= plot_type[kwargs['plot_type']](*args, **kwargs)
+            figure_path, fig, argument, legend = plot_type[kwargs['plot_type']](*args, **kwargs)
 
             return figure_path, fig, argument, legend
 
@@ -540,7 +561,6 @@ class Config:
             return True
         else:
             return False
-
     def change_cell_definition_custom_data(self, *args, name=None, new_value=None):
         idx = Config.find_cell_index(data=self.dict_from_xml, name=name)
         if idx:
@@ -628,7 +648,7 @@ class Config:
     def unit_test():
         file = r'C:\Users\VmWin\Pictures\test\PhysiCell_settings.xml'
         unit = {}
-        print_test = lambda txt, cdn: print(txt + '-' * (90 - len(txt)), str(cdn))
+        print_test = lambda txt, cdn: logger.debug(txt + '-' * (90 - len(txt)), str(cdn))
 
         # load xml file
         test = Config(file=file)
@@ -695,8 +715,6 @@ class ViewTree(QTreeWidget):
                     else:
                         self.modify_element_path_value_list_dict.append(path_value_dict)
                         return
-
-
     @staticmethod
     def modify_element(qtreewidgetitem, new_value):
         # get the current item
@@ -705,11 +723,10 @@ class ViewTree(QTreeWidget):
         if not ViewTree.is_sub_tree(si):
             if new_value:
                 si.setText(0, new_value)
-            # print(ViewTree.current_item_path(qtreewidgetitem))
+            # logger.debug(ViewTree.current_item_path(qtreewidgetitem))
             return ViewTree.current_item_path_value_dict(qtreewidgetitem)
         else:
-            print("selected item have one or multiple child")
-
+            logger.debug("selected item have one or multiple child")
     @staticmethod
     def is_sub_tree(qtreewidgetitem):
 
@@ -717,7 +734,6 @@ class ViewTree(QTreeWidget):
             return True
         else:
             return False
-
     @staticmethod
     def current_item_path_value_dict(qtreewidgetitem):
         path = []
@@ -751,7 +767,6 @@ class ViewTree(QTreeWidget):
         path.reverse()
 
         return {'path':path[:-1:], 'value':path[-1]}
-
     @staticmethod
     def fill_item(item: QTreeWidgetItem, value):
         if value is None:
@@ -767,7 +782,6 @@ class ViewTree(QTreeWidget):
                     ViewTree.new_item(item, f"[{type(val).__name__}]", val)
         else:
             ViewTree.new_item(item, str(value))
-
     @staticmethod
     def new_item(parent: QTreeWidgetItem, text:str, val=None):
         child = QTreeWidgetItem([text])
@@ -783,7 +797,7 @@ class Configuration1:
         self.args = args
 
     def init_configuration_1(self):
-        print('init_configuration_1')
+        logger.debug('init_configuration_1')
 
         # Dictionnary for creating subwindows
         self.subwindows_init = Configuration1.subwindows_dictionary()
@@ -798,7 +812,7 @@ class Configuration1:
 
 
         # Initiate parameters to be editable in a future sub-windows
-        self.param = Configuration1.test_param_dictionnary()
+        self.param = Configuration1.empty_param_dictionary()
         self.csv_files = [self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
 
         # # If xml_template_file is specify then for every modification to be made
@@ -816,10 +830,18 @@ class Configuration1:
 
     ## Gui manipulation related
     def populate_minimal_simulation_information(self):
-        print('populate_minimal_simulation_information')
+        logger.debug('populate_minimal_simulation_information')
+        qpushbutton_key_list = list(self.option_command.keys())
+
+        for k ,v in self.simulation_config_widget.items():
+            if type(v)==type(QPushButton()):
+                qpushbutton_key_list.append(k)
+
+
+
         for key, value in {**self.simulation_config_widget, **self.option_command}.items():
 
-            if key in ['xml_template_file', 'csv_file', 'special_csv_scan','run_simulation','convert_scan_to_csv','print_XML_CHANGES','test_copy']:
+            if key in qpushbutton_key_list:
                 def updater():
                     pass
 
@@ -850,31 +872,38 @@ class Configuration1:
                             self.simulation_config_widget['xml_template_file'].setText(short)
                             self.init_minimal_xml_setup()
 
-                fun = updater
-
                 if key == 'run_simulation':
                     def updater():
                         self.option_command['run_simulation'].setEnabled(False)
                         self.fun_fun()
 
-                    fun = updater
+                fun = updater
 
                 if key == 'print_XML_CHANGES':
-
-                    fun = lambda: print("self._XML_CHANGES", self._XML_CHANGES)
+                    fun = lambda: logger.debug("self._XML_CHANGES", self._XML_CHANGES)
 
                 if key == 'convert_scan_to_csv':
                     temp_dict = Configuration1.type_dict()
                     fun = lambda:Data.data_conversion_segmentation_celltypes(
-                        r"C:\Users\VmWin\Documents\University\Ete2022\Stage\data\Segmentation", r"C:\Users\VmWin\Pictures\test", type_dict=temp_dict)
+                        r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV", type_dict=temp_dict)
+
                 if key == 'test_copy':
                     fun = lambda: Simulation.specific_export_output(**self.param)
+
+                if key == 'get_table_column':
+                    fun = lambda: self.get_table_column(columnIndex=3)
+
+                if key == 'ten_ten_ten':
+                    fun = self.ten_ten_ten
+
+                if key == 'tmz_ov_simulation_launcher':
+                    fun = self.tmz_ov_simulation_launcher
 
                 value.clicked.connect(fun)
 
             self.subwindows_init['minimal_simulation_information']['layout'].addRow(key, value)
     def delete_Tab(self, index):
-        print('delete_Tab')
+        logger.debug('delete_Tab')
         widget = self.subwindows_init['media_viewer']['widget'].widget(index)
         if not widget == self.media_viewer_tab_dict['svg_viewer']:
             # Delete correspondence
@@ -883,7 +912,7 @@ class Configuration1:
             # Remove tab
             self.subwindows_init['media_viewer']['widget'].removeTab(index)
     def update_csv_file_table(self):
-        print('update_csv_file_table')
+        logger.debug('update_csv_file_table')
         temp_dict2 = Configuration1.reverse_type_dict()
 
         # csv file table
@@ -911,7 +940,7 @@ class Configuration1:
             short.doubleClicked.connect(self.double_click_csv_table)
             # lambda event:Plotting.ready_to_plot_function(script_path, f'"{os.path.abspath(self.param["csv_files"][event.row()])}"')()
             # )
-            # self.tableWidget.doubleClicked.connect(lambda event: Simulation.plot_for_physicell(,self.param['csv_files'][event.row()]))#print(event.row()+1, self.param['csv_files'][event.row()]))
+            # self.tableWidget.doubleClicked.connect(lambda event: Simulation.plot_for_physicell(,self.param['csv_files'][event.row()]))#logger.debug(event.row()+1, self.param['csv_files'][event.row()]))
 
         # Delete previous rows
         short.clearContents()
@@ -957,13 +986,13 @@ class Configuration1:
                 k-=1
             k+=1
     def init_minimal_xml_setup(self):
-        print('init_minimal_xml_setup')
+        logger.debug('init_minimal_xml_setup')
         short = self.subwindows_init['minimal_xml_setup']['widget']
         short.clear()
         value = Config.xml2dict(self.param['xml_template_file'])
         short.fill_item(short.invisibleRootItem(), value)
     def double_click_csv_table(self, event):
-        print('double_click_csv_table')
+        logger.debug('double_click_csv_table')
         csv_file = self.csv_files[event.row()]
         csv_file_name = os.path.abspath(csv_file).split(os.sep)[-1].replace('.csv','')
         if not csv_file_name in self.media_viewer_tab_dict.keys():
@@ -975,20 +1004,21 @@ class Configuration1:
         self.subwindows_init['media_viewer']['widget'].setCurrentWidget(self.media_viewer_tab_dict[csv_file_name])
     @staticmethod
     def setColortoRow(table, rowIndex, color):
+        logger.debug('setColortoRow')
         for j in range(table.columnCount()):
             table.item(rowIndex, j).setBackground(color)
 
 
     ## Set up simulation functions
     def show_param_on_widget(self):
-        print('show_param_on_widget')
+        logger.debug('show_param_on_widget')
         # show param value on screen
         for k, v in self.param.items():
             if not type(self.simulation_config_widget[k]) == type(QPushButton()):
-                print(k, "-" * (90 - len(k)), v)
+                logger.debug(k, "-" * (90 - len(k)), v)
                 self.simulation_config_widget[k].setText(str(self.param[k]))
     def setup_simulation(self, *arg, **kwargs):
-        print('setup_simulation')
+        logger.debug('setup_simulation')
 
         self.param = kwargs
         self.show_param_on_widget()
@@ -1003,7 +1033,7 @@ class Configuration1:
         csv_copy_path = os.path.join(self.param['configuration_files_destination_folder'], csv_file_name)
 
         if not QFile.copy(self.param['csv_file'], csv_copy_path):
-            print("overwriting current csv")
+            logger.debug("overwriting current csv")
             QFile.remove(csv_copy_path)
             QFile.copy(self.param['csv_file'], csv_copy_path)
 
@@ -1015,16 +1045,18 @@ class Configuration1:
             self.create_xml_from_template_change(**self.param)
 
         # Return configured simulation object
+        logger.debug({**self.param,**{'progress_widget':self.subwindows_init['progress_view']['widget'].element['local_']}})
         return Simulation(**{**self.param,**{'progress_widget':self.subwindows_init['progress_view']['widget'].element['local_']}})
 
     @staticmethod
     def now_time_in_str():
+        logger.debug('now_time_in_str')
         return str(QDateTime.currentDateTime().toString(Qt.ISODate)).replace(':', '_')
     def export_folder_naming_rule(self):
-        print('export_folder_naming_rule')
-        return os.path.join(r"C:\Users\VmWin\Pictures\test", self.param['project_name'] + '_' + self.param['suffix'])
+        logger.debug('export_folder_naming_rule')
+        return os.path.join(self.param['data_destination_folder'], self.param['project_name'] + '_' + self.param['suffix'])
     def create_xml_from_template_change(self, *args, **kwargs):
-        print('create_xml_from_template_change')
+        logger.debug('create_xml_from_template_change')
         param = kwargs
         xml_dict = Config.xml2dict(param['xml_template_file'])
 
@@ -1039,7 +1071,7 @@ class Configuration1:
         Config.dict2xml(data, destination, xml_file_name)
         return True
     def automatic_change_to_config(self, *args, **kwargs):
-        print('automatic_change_to_config')
+        logger.debug('automatic_change_to_config')
         xml_file = self.param['xml_template_file']
         csv_file = self.param['csv_file']
 
@@ -1065,24 +1097,38 @@ class Configuration1:
             y_min = sub['y'].min()
 
             # Tumour radius
-            tumour_radius = round(max(x_max,abs(x_min), y_max, abs(y_min)))+1
+            x_ = max(x_max,abs(x_min))
+            y_ = max(y_max, abs(y_min))
+            rr_ = math.sqrt(x_**2+y_**2)
+            tumour_radius = (max(x_,y_)+rr_)/2
 
             # cell_density
             cell_density = total_cell/(tumour_radius**2)
 
             #  A_frag
-            a_frag = tumour_radius**2 * math.pi
+            a_frag = tumour_radius**2 * math.pi * (10**(-3))**2
+
+            # K_v
+            k_V_star = tumour_radius * 1.58 * (10**(14))/1270
+
+            # k_C
+            k_C_star = 4.76 * (10**(6)) * k_V_star/(1.58 * (10**(14))/1270)
+
 
             # Change tumour radius
             self._XML_CHANGES.append({'path':['PhysiCell_settings','user_parameters','R','#text'], 'value':f'{tumour_radius}'})
             # Change domain
             for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[2*tumour_radius,-2*tumour_radius,2*tumour_radius,-2*tumour_radius]):
                 self._XML_CHANGES.append({'path':['PhysiCell_settings','domain', item], 'value':f'{value}'})
-                # print(f'{item}\t\t\t:',item)
             # Change cell density
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'xhi', '#text'], 'value': f'{cell_density}'})
             # Change tumour surface A_frag
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'A_frag', '#text'], 'value': f'{a_frag}'})
+            # Change K_v
+            self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'K_V', '#text'], 'value': f'{k_V_star}'})
+            # Change K_v
+            self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'K_C', '#text'], 'value': f'{k_C_star}'})
+
             # Change path to csv
             self._XML_CHANGES.append({'path': ['PhysiCell_settings','initial_conditions','cell_positions','filename'], 'value':os.path.abspath(csv_file).split(os.sep)[-1]})
 
@@ -1096,7 +1142,7 @@ class Configuration1:
 
     ## Threading related functions
     def fun_fun(self):
-        print("fun_fun")
+        logger.debug("fun_fun")
 
         # Threadpool for simulation in background
         self.threadpool = QThreadPool()
@@ -1119,7 +1165,7 @@ class Configuration1:
         self.threadpool.start(worker)
         return True
     def execute_function(self, progress_callback):
-        print('execute_function')
+        logger.debug('execute_function')
 
         # loop variable
         self.now_counter = 0
@@ -1170,16 +1216,17 @@ class Configuration1:
         else:
             pass
     def result_function(self):
-        print('result_function')
+        logger.debug('result_function')
         return
     def finish_function(self):
-        print('finish_function')
+        logger.debug('finish_function')
 
         self.timer.stop()
         self.recurring_function()
+
         return
     def update_progress_view(self, n):
-        print('update_progress_view')
+        logger.debug('update_progress_view')
 
         # Update main progress bar
         self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(n)
@@ -1196,22 +1243,51 @@ class Configuration1:
         ## Basic task
 
         # export data
-        print("*"*140)
+        logger.debug("*"*140)
         self.endind_simulation_data_export()
 
+        # Plot
+
+        tmp = {'plot_script':pis.script_path,
+         'data_source_folder':self.param['data_source_folder'],
+        'data_destination_folder':self.param['data_destination_folder'],
+        'figure_name':pis.script_path+os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv','')+str(self.csv_files.index(self.param['csv_file'])),
+        'counter_end':self.param['counter_end']}
+
+        Plotting.outside_plot_function(**tmp)
+
+        tmp = {'plot_script': ptcn.script_path,
+               'data_source_folder': self.param['data_source_folder'],
+               'data_destination_folder': self.param['data_destination_folder'],
+               'figure_name': ptcn.script_path+os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv', '') + str(
+                   self.csv_files.index(self.param['csv_file'])),
+               'counter_end': self.param['counter_end']}
+        Plotting.outside_plot_function(**tmp)
+
+        tmp = {'plot_script': pcc.script_path,
+               'data_source_folder': self.param['data_source_folder'],
+               'data_destination_folder': self.param['data_destination_folder'],
+               'figure_name': pcc.script_path + os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace(
+                   '.csv', '') + str(
+                   self.csv_files.index(self.param['csv_file'])),
+               'counter_end': self.param['counter_end']}
+        Plotting.outside_plot_function(**tmp)
+
+        # Make gif
+        Simulation.make_gif(**self.param)
+
+
         # Cleanup
+        Simulation.cleanup(**self.param)
+
 
         # Additionnal task
-
-
+        logger.debug(self.param)
         return
-
-
-
 
     ## Ending simulation task related
     def endind_simulation_data_export(self):
-        print('endind_simulation_data_export')
+        logger.debug('endind_simulation_data_export')
 
         ## copy data
         name = os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv', '')
@@ -1219,28 +1295,26 @@ class Configuration1:
         data_destination_folder = self.param['data_destination_folder']
 
         txt = f"data exported from {data_source_folder}\n to {data_destination_folder}"
-        tmp = QFCP()
+        tmp = FileCopyProgress()
         element = {'progress_bar': None, 'label': QLabel(txt)}
 
         self.subwindows_init['progress_view']['widget'].add_element(element=element, name=name)
         tmp.copy_files(scr=data_source_folder, dest=data_destination_folder)
 
         return True
-
     def color_row_in_green(self, rowIndex):
-        print('color_row_in_green')
+        logger.debug('color_row_in_green')
         table = self.subwindows_init['csv_file_table']['widget']
         Configuration1.setColortoRow(table,rowIndex,QBrush(QColor.fromRgb(52,222,52)))
-
     def color_row_in_yellow(self, rowIndex):
-        print('color_row_in_yellow')
+        logger.debug('color_row_in_yellow')
         table = self.subwindows_init['csv_file_table']['widget']
         Configuration1.setColortoRow(table,rowIndex,QBrush(QColor.fromRgb(249,250,180)))
 
 
     # Progress bar related
     def local_progress_bar_update(self):
-        # print('local_progress_bar_update')
+        # logger.debug('local_progress_bar_update')
         time_data = self.simulation_on_the_way.time_data
         day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
 
@@ -1248,7 +1322,7 @@ class Configuration1:
             self.subwindows_init['progress_view']['widget'].element['local_']['label'].setText(
                 f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
     def global_progress_bar_update(self):
-        # print('global_progress_bar_update')
+        # logger.debug('global_progress_bar_update')
         arguments = [
             self.start_time,
             time.time(),
@@ -1263,7 +1337,7 @@ class Configuration1:
             self.subwindows_init['progress_view']['widget'].element['global_']['label'].setText(
                 f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
     def recurring_function(self):
-        # print('recurring_function')
+        # logger.debug('recurring_function')
         ## update time
         try:
             # Overall progress bar update
@@ -1276,15 +1350,15 @@ class Configuration1:
             pass
     @staticmethod
     def estimated_time(start_time, end_time, now_value, end_value):
-        # print('estimated_time')
+        # logger.debug('estimated_time')
         delta_time = abs(end_time - start_time)
         delta_step = abs(end_value - now_value)
 
         total_time = delta_time * delta_step
         day_ = total_time//(60*60*24)
-        hour_ = round(total_time - 60*60*60*day_)//(60*60)
-        min_ = round(total_time - 60*60*hour_) // 60
-        sec_ = round(total_time - 60 * min_)
+        hour_ = round(total_time - 60*60*24*day_)//(60*60)
+        min_ = round(total_time - 60*60*hour_- 60*60*24*day_) // 60
+        sec_ = round(total_time - 60 * min_ - 60*60*hour_ - 60*60*24*day_)
 
         return {'sec': sec_, 'min': min_, 'hour': hour_, 'day':day_}
 
@@ -1292,7 +1366,7 @@ class Configuration1:
     ## Config
     @staticmethod
     def subwindows_dictionary():
-        print('subwindows_dictionary')
+        logger.debug('subwindows_dictionary')
         dictionary = {
             'media_viewer':
                 {
@@ -1306,8 +1380,8 @@ class Configuration1:
                 },
             'minimal_simulation_information':
                 {
-                    'widget': QWidget(),
-                    'layout': QFormLayout()
+                    'widget': ScrollableFormWidget(),
+                    'layout': None
                 },
             'csv_file_table':
                 {
@@ -1322,45 +1396,152 @@ class Configuration1:
         }
         # Specify layout
         dictionary['progress_view']['layout'] = dictionary['progress_view']['widget'].layout
+        dictionary['minimal_simulation_information']['layout'] = dictionary['minimal_simulation_information']['widget'].layout
+
+        # tmp = ScrollableWidget()
+        # tmp.layout.addWidget(dictionary['csv_file_table']['widget'])
+        # dictionary['csv_file_table']['widget'] = tmp
+        # dictionary['csv_file_table']['layout'] = dictionary['csv_file_table']['widget'].layout
+
+
         return dictionary
     @staticmethod
     def simulation_config_widget_dictionary():
-        print('simulation_config_widget_dictionary')
+        logger.debug('simulation_config_widget_dictionary')
         dictionary = {
-            "program_path": sc(),
+            "program_path": SearchComboBox(),
             "project_name": QLineEdit(),
             'counter_end': QLineEdit(),
             "executable_name": QLineEdit(),
-            "data_source_folder": sc(),
-            "data_destination_folder": sc(),
+            "data_source_folder": SearchComboBox(),
+            "data_destination_folder": SearchComboBox(),
             "suffix": QLineEdit(),
             # function
-            "configuration_files_destination_folder": sc(),
+            "configuration_files_destination_folder": SearchComboBox(),
             "xml_template_file": QPushButton('click to choose'),
             "csv_file": QPushButton('click to choose'),
         }
         return dictionary
     @staticmethod
     def option_command_dictionary():
-        print('option_command_dictionary')
+        logger.debug('option_command_dictionary')
         dictionary = {
             "special_csv_scan": QPushButton('click to choose'),
             "run_simulation": QPushButton('click to choose'),
             "convert_scan_to_csv": QPushButton('click to run'),
             "print_XML_CHANGES": QPushButton('click to run'),
             'test_copy': QPushButton('click to run'),
+            'get_table_column':QPushButton('click to run'),
+            'ten_ten_ten':QPushButton('click to run'),
+            'tmz_ov_simulation_launcher':QPushButton('click to run')
         }
         return dictionary
     @staticmethod
     def media_viewer_dictionary():
+        logger.debug('media_viewer_dictionary')
         dictionary = {'svg_viewer':svg(option=False)}
         return dictionary
 
 
+    # For my simulation
+    def get_table_column(self, columnIndex=3):
+        logger.debug('get_table_column')
+        table = self.subwindows_init['csv_file_table']['widget']
+        column_list = []
+        for row in range(table.rowCount()):
+            it = table.item(row, columnIndex)
+            text = it.text() if it is not None else ""
+            if text:
+                column_list.append(text)
+            else:
+                column_list.append(False)
+        return column_list
+
+    # Custom csv Selection
+    def ten_ten_ten(self):
+        logger.debug('ten_ten_ten')
+        # Select ten csv file with the lowest amount of cancer cell
+        # Select ten csv file with at least the mean amount of cancer cell
+        # Select ten csv file with the largest amount of cancer cell
+
+        csv_files = self.csv_files
+        column = self.get_table_column()
+        zippy = zip(csv_files, column)
+        tmp = {k: v if v else '0' for k, v in zippy}
+        sorted_dict = {k: v for k, v in sorted(tmp.items(), key=lambda item: item[1])}
+
+
+
+        for k, v in sorted_dict.copy().items():
+            if v:
+                if int(v)<100:
+                    del sorted_dict[k]
+            else:
+                del sorted_dict[k]
+
+
+        zippy_sorted = zip(sorted_dict.keys(), sorted_dict.values())
+
+        start = 0
+        stop = min(len(csv_files),10)
+        ten_min = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
+
+        half_position = len(csv_files)//2
+        start = max(10,half_position-5)
+        stop = min(len(csv_files),half_position+5)
+        ten_mean = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
+
+        start = max(0, len(csv_files)-10)
+        stop = len(csv_files)
+        ten_max = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
+        logger.debug(ten_min, ten_mean, ten_max, sep='\n')
+
+        return ten_min, ten_mean, ten_max
+
+    # test simualion
+    def tmz_ov_simulation_launcher(self):
+        logger.debug('tmz_ov_simulation_launcher')
+        self.param = Configuration1.tmz_ov_param_dictionary()
+
+        # update xml window (just to see it)
+        self.init_minimal_xml_setup()
+
+        # load csv_file
+        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+        self.csv_files = Data.scan_csv_file(source=source_)
+
+        # update csv table
+        self.update_csv_file_table()
+
+        # choose csv files
+        self.csv_files = self.ten_ten_ten()
+
+        # run simulation
+        self.fun_fun()
+
+
+
     # Parameters for test
     @staticmethod
-    def test_param_dictionnary():
-        print('test_param_dictionary')
+    def tmz_ov_param_dictionary():
+        logger.debug('tmz_ov_param_dictionary')
+
+        param = {
+            'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
+            'project_name': "gbm-ov-tmz-immune-stroma-patchy-sample",
+            'executable_name': "gbm_ov_tmz_immune_stroma_patchy.exe",
+            'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
+            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz_virus",
+            'suffix': "",
+            'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz_virus.xml",
+            'csv_file': "",
+            'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov_tmz_immune_stroma_patchy\config",
+            'counter_end': 144
+        }
+        return param
+    @staticmethod
+    def test_param_dictionary():
+        logger.debug('test_param_dictionary')
         param = {
             'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
             'project_name': "gbm-ov-tmz-immune-stroma-patchy-sample",
@@ -1375,8 +1556,8 @@ class Configuration1:
         }
         return param
     @staticmethod
-    def empty_param_dictionnary():
-        print('empty_param_dictionnary')
+    def empty_param_dictionary():
+        logger.debug('empty_param_dictionary')
         param = {
             'program_path': None,
             'project_name': None,
@@ -1396,10 +1577,10 @@ class Configuration1:
             'Th': 1,
             'Cancer': 2,
             'Tc': 3,
-            'Cl BMDM': 5,
-            'Cl MG': 5,
-            'Alt BMDM': 6,
-            'Alt MG': 6,
+            # 'Cl BMDM': 5,
+            # 'Cl MG': 5,
+            # 'Alt BMDM': 6,
+            # 'Alt MG': 6,
             'Endothelial cell': 4
         }
         return temp_dict
@@ -1409,8 +1590,8 @@ class Configuration1:
             1: 'Th',
             2: 'Cancer',
             3: 'Tc',
-            5: 'Cl BMDM/MG',
-            6: 'Alt BMDM/MG',
+            # 5: 'Cl BMDM/MG',
+            # 6: 'Alt BMDM/MG',
             4: 'Endothelial cell'
         }
         return temp_dict2
@@ -1444,6 +1625,7 @@ class MultipleProgressBar(QWidget):
         for key, value in self.element[name].items():
             if value:
                 self.layout.addRow(name, value)
+
 
 
 # # Simple progress bar
