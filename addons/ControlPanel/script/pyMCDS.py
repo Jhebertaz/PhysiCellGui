@@ -449,16 +449,14 @@ class pyMCDS:
 
             # store data from microenvironment file as numpy array
             # iterate over each voxel
-            for vox_idx in range(MCDS['mesh']['voxels']['centers'].shape[1]):
+            for vox_idx in list(range(MCDS['mesh']['voxels']['centers'].shape[1]))[1::]:
                 # find the center
                 center = MCDS['mesh']['voxels']['centers'][:, vox_idx]
-
                 i = np.where(np.abs(center[0] - X) < 1e-10)[0][0]
                 j = np.where(np.abs(center[1] - Y) < 1e-10)[0][0]
                 k = np.where(np.abs(center[2] - Z) < 1e-10)[0][0]
 
-                MCDS['continuum_variables'][species_name]['data'][j, i, k] \
-                    = me_data[4+si, vox_idx]
+                MCDS['continuum_variables'][species_name]['data'][j, i, k] = me_data[4+si, vox_idx]
 
         # in order to get to the good stuff we have to pass through a few different
         # hierarchal levels
@@ -495,6 +493,9 @@ class pyMCDS:
         # load the file
         cell_file = cell_node.find('filename').text
         cell_path = output_path / cell_file
+        print('-'*140)
+        print(cell_file)
+        print(cell_path)
         try:
             cell_data = sio.loadmat(cell_path)['cells']
         except:
@@ -508,3 +509,7 @@ class pyMCDS:
             MCDS['discrete_cells'][data_labels[col]] = cell_data[col, :]
 
         return MCDS
+
+
+
+# mcds = pyMCDS('final.xml',"C:\\Users\\VmWin\\Documents\\University\\Ete2022\\Stage\\Simulation\\result\\tmz_virus\\gbm-ov-tmz-immune-stroma-patchy-sample_2022-08-10T11_13_14")

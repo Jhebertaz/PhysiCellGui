@@ -10,6 +10,8 @@ script_name = 'plot_time_cell_number'
 
 def plot_time_cell_number(data_source_folder, data_destination_folder, figure_name, counter_end=144, *args, **kwargs):
     plt.style.use('ipynb')
+    print(data_source_folder, data_destination_folder, figure_name, counter_end, sep='\n')
+
     counter_end = int(counter_end)
     source = data_source_folder
     destination = data_destination_folder
@@ -90,3 +92,13 @@ def plot_time_cell_number(data_source_folder, data_destination_folder, figure_na
 if __name__ == "__main__":
     print(*sys.argv, sep='\n')
     plot_time_cell_number(*sys.argv[1::])
+
+
+# script_path = "C:\\Users\\VmWin\\Documents\\Project\\PhysiCellGui\\addons\\ControlPanel\\script\\plot_time_cell_number.py"
+# data_source = "C:\\Users\\VmWin\\Documents\\University\\Ete2022\\Stage\\Simulation\\result\\tmz_virus"
+# data_destination = "C:\\Users\\VmWin\\Documents\\University\\Ete2022\\Stage\\Simulation\\result\\tmz_virus"
+# figure_name = "plot_time_cell_number05_X17-343-B2_50"
+# counter_end = "10"
+#
+#
+# plot_time_cell_number(data_source, data_destination, figure_name, counter_end)

@@ -38,8 +38,6 @@ logger.addHandler(file_handler)
 # file_handler2.setFormatter(formatter)
 
 
-
-
 sys.path.insert(1, path)
 from .plot_initial_state import plot_initial_state as pis
 from .plot_time_cell_number import plot_time_cell_number as ptcn
@@ -273,7 +271,7 @@ class Data:
 
                     # convert_to_csv
                     Data.convert_to_csv(dst, filename, data)
-                    logger.debug(os.path.join(dst, filename))
+                    logger.debug(f"{os.path.join(dst, filename)}")
 
     @staticmethod
     def scan_csv_file(source, name=None):
@@ -304,6 +302,172 @@ class Data:
 
         return names[0]
 
+
+
+class Simulation2:
+    def __init__(self, *args, **kwargs):
+        self.parent = kwargs['parent']
+        del kwargs['parent']
+
+        self.args = args
+        self.kwargs = kwargs
+
+        self.finish = False
+        self.start_time = time.time()
+        self.end_time = time.time()
+
+
+    def setup_thread(self):
+        logger.debug("setup_thread")
+
+        # Threadpool for simulation in background
+        self.threadpool = QThreadPool()
+
+        # Cleanup
+        Simulation2.cleanup(**self.kwargs)
+
+        # start simulation in cmd tab
+
+        # Pass the function to execute
+        worker = Worker(self.worker_function)  # Any other args, kwargs are passed to the run function
+        worker.signals.result.connect(self.result_function)
+        worker.signals.finished.connect(self.finish_function)
+        worker.signals.progress.connect(self.update_progress)
+
+        # verification
+        if Simulation2.verification(**self.kwargs):
+            Simulation2.run_simulation(**self.kwargs)
+            # Execute
+            self.threadpool.start(worker)
+        else:
+            print("Not Executed")
+
+    def update_progress(self, n):
+        logger.debug('update_progress')
+
+        # update progress bar
+        self.parent.current_simulation_progress = n
+        self.parent.current_simulation_step_delta_time = time.time()-self.start_time
+        self.start_time = time.time()
+
+
+    def result_function(self):
+        logger.debug('result_function')
+
+    def finish_function(self):
+        logger.debug('finish_function')
+
+        ## ending task
+        name = os.path.abspath(self.kwargs['csv_file']).split(os.sep)[-1].replace('.csv', '')
+        txt = f"data exported from {self.kwargs['data_source_folder']}\n to {self.kwargs['data_destination_folder']}"
+        element = {'progress_bar': None, 'label': QLabel(txt)}
+        self.parent.subwindows_init['progress_view']['widget'].add_element(element=element, name=name)
+
+        Simulation2.specific_export_output(**self.kwargs)
+
+        Simulation2.make_gif(data_source_folder=self.kwargs['data_destination_folder'],data_destination_folder=self.kwargs['data_destination_folder'])
+
+        # plot
+        script_path = "C:\\Users\\VmWin\\Documents\\Project\\PhysiCellGui\\addons\\ControlPanel\\script\\plot_time_cell_number.py"
+        data_source = self.kwargs['data_destination_folder']
+        data_destination = self.kwargs['data_destination_folder']
+        figure_name = script_path.split(os.sep)[-1].replace('.py','')+"_"+name
+        counter_end = self.kwargs['counter_end']
+        os.system(f"start cmd /c python {script_path} {data_source} {data_destination} {figure_name}""")
+
+        # call to do another simulation
+        self.finish = True
+
+    def worker_function(self, progress_callback):
+
+        param = self.kwargs
+        now_counter = 0
+        end_counter = param['counter_end']
+
+        start_time = time.time()
+
+        # emit progress
+        progress_callback.emit(now_counter)
+        self.start_time = time.time()
+        while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")):
+            # wait one second
+            time.sleep(1)
+
+            # check for the lastest every sec svg file and took is number
+            filename = 'snapshot' + "%08i" % now_counter + '.svg'
+
+            if QFile.exists(os.path.join(param['data_source_folder'], filename)):
+                now_counter += 1
+                progress_callback.emit(now_counter)
+
+
+
+        ## ending task
+
+
+    ## Function
+    @staticmethod
+    def cleanup(*args, **kwargs):
+        logger.debug('cleanup')
+        program_path = kwargs['program_path']
+        # os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
+        # os.system(f'start cmd /c make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
+        os.system(f'make -C {program_path} reset')
+        time.sleep(1)
+        os.system(f'make -C {program_path} reset')
+        time.sleep(1)
+        os.system(f'make -C {program_path} data-cleanup')
+        time.sleep(1)
+        os.system(f'make -C {program_path} clean')
+        time.sleep(1)
+
+        return True
+    @staticmethod
+    def run_simulation(*args, **kwargs):
+        logger.debug('run_simulation')
+        program_path = kwargs['program_path']
+        project_name = kwargs['project_name']
+        executable_name = kwargs['executable_name']
+
+        executable_path = os.path.abspath(os.path.join(program_path, executable_name))
+        # os.system(f'start cmd /c  "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+        os.system(
+            f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+        return True
+    @staticmethod
+    def make_gif(*args, **kwargs):
+        logger.debug('make_gif')
+        data_source_folder = kwargs['data_source_folder']
+        data_destination_folder = kwargs['data_destination_folder']
+        os.system(f'start cmd /c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
+        return f"{data_destination_folder}/out.gif"
+    @staticmethod
+    def specific_export_output(data_source_folder=None, data_destination_folder=None, *args, **kwargs):
+            logger.debug('specific_export_output')
+            logger.debug(f"data_source_folder{data_source_folder}")
+            logger.debug(f"data_destination_folder{data_destination_folder}")
+            if not data_source_folder:
+                data_source_folder = QFileDialog.getExistingDirectory(None, "Select Directory Source")
+            if not data_destination_folder:
+                data_destination_folder = QFileDialog.getExistingDirectory(None, "Select Directory Destination")
+
+            if data_source_folder and data_destination_folder:
+                insta = FileCopyProgress()
+                insta.copy_files(scr=data_source_folder, dest=data_destination_folder)
+
+            return data_destination_folder
+    @staticmethod
+    def verification(*args, **kwargs):
+        logger.debug('verification')
+        ok_bool_list = [True]
+        param = kwargs
+        for k, v in param.items():
+            if not v:
+                if k in ['suffix', 'csv_file']:
+                    ok_bool_list.append(True)
+                else:
+                    ok_bool_list.append(False)
+        return not (False in ok_bool_list)
 
 
 # Simulation instance to facilitate series of simulation
@@ -339,12 +503,12 @@ class Simulation:
     def start_simulation(self):
 
         param = self.kwargs
+
         # loop variable
         self.now_counter = 0
         end_counter = param['counter_end']
 
         start_time = time.time()
-
 
         # Cleanup
         Simulation.cleanup(**param)
@@ -366,18 +530,50 @@ class Simulation:
 
             if QFile.exists(os.path.join(param['data_source_folder'], filename)):
                 self.now_counter += 1
+
+
                 self.progress_bar.setValue(self.now_counter)
 
                 # update estimated time
                 start_time = time.time()
 
 
-        self.is_finish = True
-        logger.debug('finish')
-
         # Other function from args
         # for task in self.basic_task+list(self.args):
         #     task()
+        # # Cleanup
+        # Simulation.cleanup(**param)
+        self.is_finish = True
+        logger.debug('finish')
+
+
+
+
+    def set_up_simulation(self):
+
+        # Automatic suffix for uniqueness
+        self.kwargs['suffix'] = Configuration1.now_time_in_str()
+        self.kwargs['data_destination_folder'] = self.export_folder_naming_rule()
+
+        # copy csv to the right destination
+        csv_file_name = self.kwargs['csv_file'].split(os.sep)[-1]
+        csv_copy_path = os.path.join(self.kwargs['configuration_files_destination_folder'], csv_file_name)
+
+        if not QFile.copy(self.kwargs['csv_file'], csv_copy_path):
+            logger.debug("overwriting current csv")
+            QFile.remove(csv_copy_path)
+            QFile.copy(self.kwargs['csv_file'], csv_copy_path)
+
+        # Maybe a condition to disable it
+        # Automatic change to xml
+        if self.automatic_change_to_config():
+            # create xml config file from the template and from the changes
+            self.create_xml_from_template_change(**self.kwargs)
+
+        # Return configured simulation object
+        for k, v in self.kwargs.items():
+            logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
+
 
 
     ## Function
@@ -386,11 +582,15 @@ class Simulation:
         logger.debug('cleanup')
         program_path = kwargs['program_path']
         # os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
-        # os.system(f'start cmd /k make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
+        # os.system(f'start cmd /c make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
         os.system(f'make -C {program_path} reset')
+        time.sleep(1)
         os.system(f'make -C {program_path} reset')
+        time.sleep(1)
         os.system(f'make -C {program_path} data-cleanup')
+        time.sleep(1)
         os.system(f'make -C {program_path} clean')
+        time.sleep(1)
 
         return True
     @staticmethod
@@ -401,19 +601,21 @@ class Simulation:
         executable_name = kwargs['executable_name']
 
         executable_path = os.path.abspath(os.path.join(program_path,executable_name))
-        os.system(f'start cmd /k  "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /k and /c for closing after task
+        # os.system(f'start cmd /c  "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+        os.system(f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
         return True
     @staticmethod
     def make_gif(*args, **kwargs):
         logger.debug('make_gif')
         data_source_folder = kwargs['data_source_folder']
         data_destination_folder = kwargs['data_destination_folder']
-        os.system(f'start cmd /k "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
+        os.system(f'start cmd /c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
         return f"{data_destination_folder}/out.gif"
     @staticmethod
     def specific_export_output(data_source_folder=None, data_destination_folder=None, *args, **kwargs):
         logger.debug('specific_export_output')
-        logger.debug('truc',data_source_folder, data_destination_folder)
+        logger.debug(f"data_source_folder{data_source_folder}")
+        logger.debug(f"data_destination_folder{data_destination_folder}")
         if not data_source_folder:
             data_source_folder = QFileDialog.getExistingDirectory(None, "Select Directory Source")
         if not data_destination_folder:
@@ -425,10 +627,11 @@ class Simulation:
 
         return data_destination_folder
 
-    def verification(self, *args, **kwargs):
+    @staticmethod
+    def verification(*args, **kwargs):
         logger.debug('verification')
         ok_bool_list = [True]
-        param = self.kwargs
+        param = kwargs
         for k, v in param.items():
             if not v:
                 if k in ['suffix', 'csv_file']:
@@ -473,7 +676,8 @@ class Plotting:
     def outside_plot_function(*args, **kwargs):
         # script_path, data_source_folder, data_destination_folder, figure_name ,... in order
         arguments_in_string = ' '.join(map(str, list(args)+list(kwargs.values())))
-        # os.system(f"""start cmd /k 'python {arguments_in_string} ' """)
+        # os.system(f"""start cmd /c 'python {arguments_in_string} ' """)
+        print(f"""start cmd /c python {arguments_in_string} """)
         os.system(f"""start cmd /c python {arguments_in_string} """)
         return True
 
@@ -648,7 +852,7 @@ class Config:
     def unit_test():
         file = r'C:\Users\VmWin\Pictures\test\PhysiCell_settings.xml'
         unit = {}
-        print_test = lambda txt, cdn: logger.debug(txt + '-' * (90 - len(txt)), str(cdn))
+        print_test = lambda txt, cdn: logger.debug(f"{txt}{'-' * (90 - len(txt))}{str(cdn)}")
 
         # load xml file
         test = Config(file=file)
@@ -796,6 +1000,9 @@ class Configuration1:
         self.kwargs = kwargs
         self.args = args
 
+        self.counter = 0
+
+
     def init_configuration_1(self):
         logger.debug('init_configuration_1')
 
@@ -812,7 +1019,7 @@ class Configuration1:
 
 
         # Initiate parameters to be editable in a future sub-windows
-        self.param = Configuration1.empty_param_dictionary()
+        self.param = Configuration1.test_param_dictionary()
         self.csv_files = [self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
 
         # # If xml_template_file is specify then for every modification to be made
@@ -837,8 +1044,6 @@ class Configuration1:
             if type(v)==type(QPushButton()):
                 qpushbutton_key_list.append(k)
 
-
-
         for key, value in {**self.simulation_config_widget, **self.option_command}.items():
 
             if key in qpushbutton_key_list:
@@ -850,14 +1055,14 @@ class Configuration1:
                         file_ = Data.loadFiles()
                         if file_:
                             self.csv_files = file_
-                            self.update_csv_file_table()
+                            # self.update_csv_file_table()
 
                 if key == 'special_csv_scan':
                     def updater():
                         source_ = QFileDialog.getExistingDirectory(None, "Find Directory",".")
                         if source_:
                             self.csv_files = Data.scan_csv_file(source=source_)
-                            self.update_csv_file_table()
+                            # self.update_csv_file_table()
 
                 if key == 'xml_template_file':
                     def updater():
@@ -875,12 +1080,12 @@ class Configuration1:
                 if key == 'run_simulation':
                     def updater():
                         self.option_command['run_simulation'].setEnabled(False)
-                        self.fun_fun()
+                        self.foo()
 
                 fun = updater
 
                 if key == 'print_XML_CHANGES':
-                    fun = lambda: logger.debug("self._XML_CHANGES", self._XML_CHANGES)
+                    fun = lambda: logger.debug(f"self._XML_CHANGES {self._XML_CHANGES}")
 
                 if key == 'convert_scan_to_csv':
                     temp_dict = Configuration1.type_dict()
@@ -1008,21 +1213,42 @@ class Configuration1:
         for j in range(table.columnCount()):
             table.item(rowIndex, j).setBackground(color)
 
+    def foo(self):
 
-    ## Set up simulation functions
-    def show_param_on_widget(self):
-        logger.debug('show_param_on_widget')
-        # show param value on screen
-        for k, v in self.param.items():
-            if not type(self.simulation_config_widget[k]) == type(QPushButton()):
-                logger.debug(k, "-" * (90 - len(k)), v)
-                self.simulation_config_widget[k].setText(str(self.param[k]))
-    def setup_simulation(self, *arg, **kwargs):
-        logger.debug('setup_simulation')
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.current_simulation_progress_update)
+        self.timer.timeout.connect(self.is_current_simulation_finish)
 
-        self.param = kwargs
+
+
+        # set up simulation
+        self.set_up_simulation()
+
+        # make gui change
         self.show_param_on_widget()
+        self.update_csv_file_table()
+        self.color_row_in_yellow(self.counter)
 
+        self.init_minimal_xml_setup()
+
+        self.subwindows_init['progress_view']['widget'].element['local_']['progress_bar'].setMinimum(0)
+        self.subwindows_init['progress_view']['widget'].element['local_']['progress_bar'].setMaximum(self.param['counter_end'])
+
+        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMinimum(0)
+        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMaximum(len(self.csv_files))
+
+        # start thread
+        self.current_simulation_progress = 0
+        self.current_simulation_step_delta_time = 0
+        self.current_simulation = Simulation2(**{**self.param,**{'parent':self}})
+        self.current_simulation.setup_thread()
+
+        # start timer
+        self.timer.start()
+        self.start_time = time.time()
+    def set_up_simulation(self):
+        logger.debug('setup_simulation')
 
         # Automatic suffix for uniqueness
         self.param['suffix'] = Configuration1.now_time_in_str()
@@ -1045,8 +1271,15 @@ class Configuration1:
             self.create_xml_from_template_change(**self.param)
 
         # Return configured simulation object
-        logger.debug({**self.param,**{'progress_widget':self.subwindows_init['progress_view']['widget'].element['local_']}})
-        return Simulation(**{**self.param,**{'progress_widget':self.subwindows_init['progress_view']['widget'].element['local_']}})
+        for k, v in self.param.items():
+            logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
+    def show_param_on_widget(self):
+        logger.debug('show_param_on_widget')
+        # show param value on screen
+        for k, v in self.param.items():
+            if not type(self.simulation_config_widget[k]) == type(QPushButton()):
+                logger.debug(f"{k}{'-' * (90 - len(k))}{v}")
+                self.simulation_config_widget[k].setText(str(self.param[k]))
 
     @staticmethod
     def now_time_in_str():
@@ -1119,7 +1352,7 @@ class Configuration1:
             self._XML_CHANGES.append({'path':['PhysiCell_settings','user_parameters','R','#text'], 'value':f'{tumour_radius}'})
             # Change domain
             for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[2*tumour_radius,-2*tumour_radius,2*tumour_radius,-2*tumour_radius]):
-                self._XML_CHANGES.append({'path':['PhysiCell_settings','domain', item], 'value':f'{value}'})
+                self._XML_CHANGES.append({'path':['PhysiCell_settings','domain', item], 'value':f'{int(round(value))}'})
             # Change cell density
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'xhi', '#text'], 'value': f'{cell_density}'})
             # Change tumour surface A_frag
@@ -1138,159 +1371,257 @@ class Configuration1:
             return True
 
         return False
+    def current_simulation_progress_update(self):
+        logger.debug('current_simulation_progress_update')
+        # get progress from simulation
+        self.subwindows_init['progress_view']['widget'].element['local_']['progress_bar'].setValue(self.current_simulation_progress)
+        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(self.counter)
+        self.update_local_label()
+        self.update_global_label()
+        self.start_time = time.time()
+    def is_current_simulation_finish(self):
+        logger.debug('is_current_simulation_finish')
+
+        if self.current_simulation.finish and self.counter<len(self.csv_files):
+            # set the previous row in green
+            self.color_row_in_green(self.counter)
+            self.counter += 1
+
+
+
+
+            # set the next row in yellow
+            self.color_row_in_yellow(self.counter)
+
+            self.timer.stop()
+            self.param['csv_file'] = self.csv_files[self.counter]
+            self.param['data_destination_folder'] = Configuration1.test_param_dictionary()['data_destination_folder']
+            # next csv_file
+
+            self.foo()
+
+    def update_global_label(self):
+        logger.debug('update_global_label')
+        arguments = [self.start_time, time.time(), self.counter,len(self.csv_files)]
+        time_data = Configuration1.estimated_time(*arguments)
+        day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
+
+        if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
+            self.subwindows_init['progress_view']['widget'].element['global_']['label'].setText(
+                f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
+
+    def update_local_label(self):
+        logger.debug('update_local_label')
+
+        arguments = [0,self.current_simulation_step_delta_time,self.current_simulation_progress,self.param['counter_end']]
+        time_data = Configuration1.estimated_time(*arguments)
+        day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
+        print(day_, hour_, min_, sec_ )
+        if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
+            self.subwindows_init['progress_view']['widget'].element['local_']['label'].setText(
+                f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
+
+    ## Set up simulation functions
+
+
+    # def setup_simulation(self, *arg, **kwargs):
+    #     logger.debug('setup_simulation')
+    #
+    #     # self.param = kwargs
+    #     self.show_param_on_widget()
+    #
+    #
+    #     # Automatic suffix for uniqueness
+    #     self.param['suffix'] = Configuration1.now_time_in_str()
+    #     self.param['data_destination_folder'] = self.export_folder_naming_rule()
+    #
+    #     # copy csv to the right destination
+    #     csv_file_name = self.param['csv_file'].split(os.sep)[-1]
+    #     csv_copy_path = os.path.join(self.param['configuration_files_destination_folder'], csv_file_name)
+    #
+    #     if not QFile.copy(self.param['csv_file'], csv_copy_path):
+    #         logger.debug("overwriting current csv")
+    #         QFile.remove(csv_copy_path)
+    #         QFile.copy(self.param['csv_file'], csv_copy_path)
+    #
+    #     # Maybe a condition to disable it
+    #     # Automatic change to xml
+    #     if self.automatic_change_to_config():
+    #
+    #         # create xml config file from the template and from the changes
+    #         self.create_xml_from_template_change(**self.param)
+    #
+    #     # Return configured simulation object
+    #     tmp = {**self.param,**{'progress_widget':self.subwindows_init['progress_view']['widget'].element['local_']}}
+    #
+    #     for k,v in tmp.items():
+    #         logger.debug(f"{k}{'.'*(100-len(k))}{v}")
+    #
+    #     return Simulation(**tmp)
+
+
 
 
     ## Threading related functions
-    def fun_fun(self):
-        logger.debug("fun_fun")
+    # def fun_fun(self):
+    #     logger.debug("fun_fun")
+    #
+    #     # Threadpool for simulation in background
+    #     self.threadpool = QThreadPool()
+    #     self.simulation_on_the_way = Simulation()
+    #
+    #     # Timer for progress bar update
+    #     self.timer = QTimer()
+    #     self.timer.setInterval(1500)
+    #     self.timer.timeout.connect(self.recurring_function)
+    #     self.timer.start()
+    #
+    #
+    #     # Pass the function to execute
+    #     worker = Worker(self.execute_function)  # Any other args, kwargs are passed to the run function
+    #     worker.signals.result.connect(self.result_function)
+    #     worker.signals.finished.connect(self.finish_function)
+    #     worker.signals.progress.connect(self.update_progress_view)
+    #
+    #     # Execute
+    #     self.threadpool.start(worker)
+    #
+    #
+    #     return True
+    # def execute_function(self, progress_callback):
+    #     logger.debug('execute_function')
+    #
+    #     # loop variable
+    #     self.now_counter = 0
+    #     self.start_time = time.time()
+    #
+    #     # update csv table
+    #     self.update_csv_file_table()
+    #
+    #     end_counter = len(self.csv_files)
+    #
+    #     # setup progress bar
+    #     self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMinimum(0)
+    #     self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMaximum(end_counter)
+    #     self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(0)
+    #
+    #
+    #     # with csv
+    #     if end_counter >= 1:
+    #
+    #         ## to show csv_file on a subwindow
+    #         # self.update_csv_file_table()
+    #         self.color_row_in_yellow(0)
+    #
+    #         for csv_file in self.csv_files:
+    #             # Cleanup
+    #             Simulation.cleanup(**self.param.copy())
+    #
+    #             # update parameters
+    #             self.param['csv_file'] = csv_file
+    #
+    #             # Retrieve the right folder
+    #             self.param['data_destination_folder'] = Configuration1.tmz_ov_param_dictionary()['data_destination_folder']
+    #
+    #             # set up
+    #             self.simulation_on_the_way = self.setup_simulation()
+    #
+    #             if Simulation.verification(**self.simulation_on_the_way.kwargs):
+    #                 # start
+    #                 self.start_time = time.time()
+    #                 self.simulation_on_the_way.start_simulation()
+    #
+    #                 self.now_counter += 1
+    #
+    #                 # emit progress
+    #                 progress_callback.emit(self.now_counter)
+    #                 time.sleep(5)
+    #
+    #
+    #
+    #             else:
+    #
+    #                 dlg = QMessageBox(self)
+    #                 dlg.setWindowTitle("Alert!")
+    #                 dlg.setText("One or more parameter are empty")
+    #                 dlg.exec_()
+    #
+    #     # without csv
+    #     else:
+    #         pass
+    # def result_function(self):
+    #     logger.debug('result_function')
+    #     return
+    # def finish_function(self):
+    #     logger.debug('finish_function')
+    #
+    #     self.timer.stop()
+    #     self.recurring_function()
+    #
+    #     return
+    # def update_progress_view(self, n):
+    #     logger.debug('update_progress_view')
+    #
+    #     # Update main progress bar
+    #     self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(n)
+    #
+    #     # set the previous row in green
+    #     self.color_row_in_green(self.now_counter-1)
+    #
+    #     if self.now_counter+1<=len(self.csv_files):
+    #         # set the next row in yellow
+    #         self.color_row_in_yellow(self.now_counter)
+    #
+    #         ## ending simulation task
+    #         ## Basic task
+    #         # export data
+    #         logger.debug(f"{'*' * 140}")
+    #         self.endind_simulation_data_export()
+    #
+    #         # Plot
+    #         script_path = r'C:\Users\VmWin\Documents\Project\PhysiCellGui\addons\ControlPanel\script\plot_time_cell_number.py'
+    #         script_name = 'plot_time_cell_number'
+    #         print(script_path)
+    #         print(os.path.abspath(script_path))
+    #         tmp = {'script_path': os.path.abspath(script_path),
+    #                'data_source_folder': self.param['data_destination_folder'],
+    #                'data_destination_folder': self.param['data_destination_folder'],
+    #                'figure_name': script_name + os.path.abspath(self.param['csv_file']).split(os.sep)[
+    #                    -1].replace('.csv', '') + str(self.csv_files.index(self.param['csv_file'])),
+    #                'counter_end': self.param['counter_end']}
+    #
+    #         Plotting.outside_plot_function(**tmp)
+    #
+    #         script_path = r'C:\Users\VmWin\Documents\Project\PhysiCellGui\addons\ControlPanel\script\plot_concentration_chemokine.py'
+    #         script_name = 'plot_concentration_chemokine'
+    #
+    #         print(script_path)
+    #         print(os.path.abspath(script_path))
+    #         tmp = {'script_path': os.path.abspath(script_path),
+    #                'data_source_folder': self.param['data_destination_folder'],
+    #                'data_destination_folder': self.param['data_destination_folder'],
+    #                'figure_name': script_name + os.path.abspath(self.param['csv_file']).split(os.sep)[
+    #                    -1].replace('.csv', '') + str(self.csv_files.index(self.param['csv_file'])),
+    #                'counter_end': self.param['counter_end']}
+    #         Plotting.outside_plot_function(**tmp)
+    #
+    #         # Make gif
+    #         Simulation.make_gif(**{'data_source_folder': self.param['data_destination_folder'],
+    #                                'data_destination_folder': self.param['data_destination_folder']})
+    #
+    #
+    #         # Additionnal task
+    #         for k, v in self.param.items():
+    #             logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
+    #         return
 
-        # Threadpool for simulation in background
-        self.threadpool = QThreadPool()
-        self.simulation_on_the_way = Simulation()
 
-        # Timer for progress bar update
-        self.timer = QTimer()
-        self.timer.setInterval(1500)
-        self.timer.timeout.connect(self.recurring_function)
-        self.timer.start()
-
-
-        # Pass the function to execute
-        worker = Worker(self.execute_function)  # Any other args, kwargs are passed to the run function
-        worker.signals.result.connect(self.result_function)
-        worker.signals.finished.connect(self.finish_function)
-        worker.signals.progress.connect(self.update_progress_view)
-
-        # Execute
-        self.threadpool.start(worker)
-        return True
-    def execute_function(self, progress_callback):
-        logger.debug('execute_function')
-
-        # loop variable
-        self.now_counter = 0
-        self.start_time = time.time()
-
-        end_counter = len(self.csv_files)
-
-        # setup progress bar
-        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMinimum(0)
-        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMaximum(end_counter)
-        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(0)
-
-
-        # with csv
-        if end_counter >= 1:
-
-            ## to show csv_file on a subwindow
-            # self.update_csv_file_table()
-            self.color_row_in_yellow(0)
-
-            for csv_file in self.csv_files:
-
-                # update parameters
-                self.param['csv_file'] = csv_file
-
-                # set up
-                self.simulation_on_the_way = self.setup_simulation(**self.param)
-
-                if self.simulation_on_the_way.verification():
-                    # start
-                    self.start_time = time.time()
-                    self.simulation_on_the_way.start_simulation()
-
-                    self.now_counter += 1
-
-                    # emit progress
-                    progress_callback.emit(self.now_counter)
-                    time.sleep(5)
-
-                else:
-
-                    dlg = QMessageBox(self)
-                    dlg.setWindowTitle("Alert!")
-                    dlg.setText("One or more parameter are empty")
-                    dlg.exec_()
-
-        # without csv
-        else:
-            pass
-    def result_function(self):
-        logger.debug('result_function')
-        return
-    def finish_function(self):
-        logger.debug('finish_function')
-
-        self.timer.stop()
-        self.recurring_function()
-
-        return
-    def update_progress_view(self, n):
-        logger.debug('update_progress_view')
-
-        # Update main progress bar
-        self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setValue(n)
-
-        # set the previous row in green
-        self.color_row_in_green(self.now_counter-1)
-
-        if self.now_counter+1<=len(self.csv_files):
-            # set the next row in yellow
-            self.color_row_in_yellow(self.now_counter)
-
-        ## ending simulation task
-
-        ## Basic task
-
-        # export data
-        logger.debug("*"*140)
-        self.endind_simulation_data_export()
-
-        # Plot
-
-        tmp = {'plot_script':pis.script_path,
-         'data_source_folder':self.param['data_source_folder'],
-        'data_destination_folder':self.param['data_destination_folder'],
-        'figure_name':pis.script_path+os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv','')+str(self.csv_files.index(self.param['csv_file'])),
-        'counter_end':self.param['counter_end']}
-
-        Plotting.outside_plot_function(**tmp)
-
-        tmp = {'plot_script': ptcn.script_path,
-               'data_source_folder': self.param['data_source_folder'],
-               'data_destination_folder': self.param['data_destination_folder'],
-               'figure_name': ptcn.script_path+os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv', '') + str(
-                   self.csv_files.index(self.param['csv_file'])),
-               'counter_end': self.param['counter_end']}
-        Plotting.outside_plot_function(**tmp)
-
-        tmp = {'plot_script': pcc.script_path,
-               'data_source_folder': self.param['data_source_folder'],
-               'data_destination_folder': self.param['data_destination_folder'],
-               'figure_name': pcc.script_path + os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace(
-                   '.csv', '') + str(
-                   self.csv_files.index(self.param['csv_file'])),
-               'counter_end': self.param['counter_end']}
-        Plotting.outside_plot_function(**tmp)
-
-        # Make gif
-        Simulation.make_gif(**self.param)
-
-
-        # Cleanup
-        Simulation.cleanup(**self.param)
-
-
-        # Additionnal task
-        logger.debug(self.param)
-        return
 
     ## Ending simulation task related
     def endind_simulation_data_export(self):
         logger.debug('endind_simulation_data_export')
 
         ## copy data
-        name = os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv', '')
         data_source_folder = self.param['data_source_folder']
         data_destination_folder = self.param['data_destination_folder']
 
@@ -1298,6 +1629,7 @@ class Configuration1:
         tmp = FileCopyProgress()
         element = {'progress_bar': None, 'label': QLabel(txt)}
 
+        name = os.path.abspath(self.param['csv_file']).split(os.sep)[-1].replace('.csv', '')
         self.subwindows_init['progress_view']['widget'].add_element(element=element, name=name)
         tmp.copy_files(scr=data_source_folder, dest=data_destination_folder)
 
@@ -1313,29 +1645,29 @@ class Configuration1:
 
 
     # Progress bar related
-    def local_progress_bar_update(self):
-        # logger.debug('local_progress_bar_update')
-        time_data = self.simulation_on_the_way.time_data
-        day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
-
-        if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
-            self.subwindows_init['progress_view']['widget'].element['local_']['label'].setText(
-                f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
-    def global_progress_bar_update(self):
-        # logger.debug('global_progress_bar_update')
-        arguments = [
-            self.start_time,
-            time.time(),
-            self.now_counter,
-            (self.param['counter_end'] - self.simulation_on_the_way.now_counter) * (
-                        len(self.csv_files) - self.now_counter)
-        ]
-        time_data = Configuration1.estimated_time(*arguments)
-        day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
-
-        if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
-            self.subwindows_init['progress_view']['widget'].element['global_']['label'].setText(
-                f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
+    # def local_progress_bar_update(self):
+    #     # logger.debug('local_progress_bar_update')
+    #     time_data = self.simulation_on_the_way.time_data
+    #     day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
+    #
+    #     if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
+    #         self.subwindows_init['progress_view']['widget'].element['local_']['label'].setText(
+    #             f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
+    # def global_progress_bar_update(self):
+    #     # logger.debug('global_progress_bar_update')
+    #     arguments = [
+    #         self.start_time,
+    #         time.time(),
+    #         self.now_counter,
+    #         (self.param['counter_end'] - self.simulation_on_the_way.now_counter) * (
+    #                     len(self.csv_files) - self.now_counter)
+    #     ]
+    #     time_data = Configuration1.estimated_time(*arguments)
+    #     day_, hour_, min_, sec_ = time_data['day'], time_data['hour'], time_data['min'], time_data['sec']
+    #
+    #     if day_ >= 0 and hour_ >= 0 and min_ >= 0 and sec_ >= 0:
+    #         self.subwindows_init['progress_view']['widget'].element['global_']['label'].setText(
+    #             f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
     def recurring_function(self):
         # logger.debug('recurring_function')
         ## update time
@@ -1467,7 +1799,7 @@ class Configuration1:
         csv_files = self.csv_files
         column = self.get_table_column()
         zippy = zip(csv_files, column)
-        tmp = {k: v if v else '0' for k, v in zippy}
+        tmp = {k: int(v) if v else '0' for k, v in zippy}
         sorted_dict = {k: v for k, v in sorted(tmp.items(), key=lambda item: item[1])}
 
 
@@ -1481,20 +1813,29 @@ class Configuration1:
 
 
         zippy_sorted = zip(sorted_dict.keys(), sorted_dict.values())
-
+        listy = list(zippy_sorted)
         start = 0
         stop = min(len(csv_files),10)
-        ten_min = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
+        ten_min = {item[0]:item[1] for item in listy[start:stop:]}
 
         half_position = len(csv_files)//2
         start = max(10,half_position-5)
         stop = min(len(csv_files),half_position+5)
-        ten_mean = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
+        ten_mean = {item[0]:item[1] for item in listy[start:stop:]}
 
         start = max(0, len(csv_files)-10)
         stop = len(csv_files)
-        ten_max = {item[0]:item[1] for item in list(zippy_sorted)[start::stop]}
-        logger.debug(ten_min, ten_mean, ten_max, sep='\n')
+        ten_max = {item[0]:item[1] for item in listy[start:stop:]}
+
+        logger.debug(f'ten_min')
+        for k,v in ten_min.items():
+            logger.debug(f"{k}{'.'*100-len(k)}{v}")
+        logger.debug(f'ten_mean')
+        for k, v in ten_min.items():
+            logger.debug(f"{k}{'.' * 100 - len(k)}{v}")
+        logger.debug(f'ten_max')
+        for k, v in ten_min.items():
+            logger.debug(f"{k}{'.' * 100 - len(k)}{v}")
 
         return ten_min, ten_mean, ten_max
 
@@ -1514,7 +1855,11 @@ class Configuration1:
         self.update_csv_file_table()
 
         # choose csv files
-        self.csv_files = self.ten_ten_ten()
+        ten_min, ten_mean, ten_max = self.ten_ten_ten()
+        self.csv_files = [*set(list(ten_min.keys())+list(ten_mean.keys())+list(ten_max.keys()))]
+
+        # update csv table
+        self.update_csv_file_table()
 
         # run simulation
         self.fun_fun()
@@ -1536,7 +1881,7 @@ class Configuration1:
             'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz_virus.xml",
             'csv_file': "",
             'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov_tmz_immune_stroma_patchy\config",
-            'counter_end': 144
+            'counter_end': 10
         }
         return param
     @staticmethod
@@ -1547,12 +1892,12 @@ class Configuration1:
             'project_name': "gbm-ov-tmz-immune-stroma-patchy-sample",
             'executable_name': "gbm_ov_tmz_immune_stroma_patchy.exe",
             'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
-            'data_destination_folder': r"C:\Users\VmWin\Pictures\test\gbm_ov_tmz_immune_stroma_patchy_sample_2022-08-03T09_42_54",
+            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz_virus",
             'suffix': "2022-08-03T09_42_54",
-            'xml_template_file': r"C:\Users\VmWin\Pictures\test\template.xml",
+            'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz_virus.xml",
             'csv_file': r"C:\Users\VmWin\Pictures\test\Segmentation\Project 1 ICI glioma IMC\20200617\OneDrive_10_7-7-2020-1\Pano 01_Col2-3_1_ROI 05_X17-343-B2_5\05_X17-343-B2_5.csv",#                         r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"],
             'configuration_files_destination_folder':r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov_tmz_immune_stroma_patchy\config",
-            'counter_end': 144
+            'counter_end': 10
         }
         return param
     @staticmethod
