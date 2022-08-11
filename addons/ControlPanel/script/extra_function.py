@@ -25,11 +25,11 @@ PATH = os.path.realpath(__file__).strip(filename)
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 file_handler = logging.FileHandler(os.path.join(PATH,'..','..','..','out','debug_extra_function.log'))
-file_handler.setLevel(logging.DEBUG)
+file_handler.setLevel(logging.WARNING)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
@@ -377,13 +377,13 @@ class Simulation2:
         os.system(f"start cmd /c python {script_path} {data_source_folder} {data_destination_folder} {figure_name} {counter_end}""")
 
         # Chemokine concentration
-        moments = ['output' + "%08i" % (self.kwargs['counter_end']//2) + '.svg','final.xml']
+        moments = ['output' + "%08i" % (self.kwargs['counter_end']//2) + '.xml','final.xml']
         for moment in moments:
             script_path = os.path.join(PATH, 'plot_concentration_chemokine.py')
             script_name = Plotting.get_script_name(script_path)
             figure_name = name + '_'+moment+'_'+ script_name
 
-            os.system(f"start cmd /c python {script_path} {data_source_folder} {data_destination_folder} {figure_name}""")
+            os.system(f"start cmd /c python {script_path} {data_source_folder} {data_destination_folder} {figure_name} {moment}""")
 
         # for task in self.args:
         #     task()
@@ -441,7 +441,7 @@ class Simulation2:
         executable_path = os.path.abspath(os.path.join(program_path, executable_name))
         # os.system(f'start cmd /c  "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
         os.system(
-            f'start cmd /k "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+            f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
         return True
     @staticmethod
     def make_gif(*args, **kwargs):
@@ -998,7 +998,7 @@ class Configuration1:
 
         # Initiate parameters to be editable in a future sub-windows
         self.param = Configuration1.tmz_ov_param_dictionary()
-        self.csv_files = [self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
+        self.csv_files = []#[self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
 
         # # If xml_template_file is specify then for every modification to be made
         # # this list of dict {path, value} will track
@@ -1187,7 +1187,7 @@ class Configuration1:
         return {'sec': sec_, 'min': min_, 'hour': hour_, 'day':day_}
     def export_folder_naming_rule(self):
         logger.debug('export_folder_naming_rule')
-        return os.path.join(self.param['data_destination_folder'], str(self.counter+20)+self.param['project_name'] + '_' + self.param['suffix'])
+        return os.path.join(self.param['data_destination_folder'], str(self.counter)+self.param['project_name'] + '_' + self.param['suffix'])
     def create_xml_from_template_change(self, *args, **kwargs):
         logger.debug('create_xml_from_template_change')
         param = kwargs
@@ -1425,13 +1425,12 @@ class Configuration1:
         return dictionary
 
 
-
-
     # test simualion
     def tmz_ov_simulation_launcher(self):
         logger.debug('tmz_ov_simulation_launcher')
         self.param = Configuration1.tmz_ov_param_dictionary()
-
+        # self.param = Configuration1.tmz_param_dictionary()
+        # self.param = Configuration1.ov_param_dictionary()
         # update xml window (just to see it)
         self.init_minimal_xml_setup()
 
@@ -1443,8 +1442,37 @@ class Configuration1:
         self.test_ten_ten_ten_on_table()
         # run simulation
         self.foo()
+    def test_ten_ten_ten_on_table(self):
+        logger.debug('test_ten_ten_ten_on_table')
+
+        ten_min, ten_mean, ten_max = self.ten_ten_ten()
+        data = (*ten_min,*ten_mean,*ten_max)
+        self.csv_files = list(map(lambda item: item[0], data))
+        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv',''),sum(item[1::]), *item[1::])
+        data = list(map(name, data))
 
 
+        self.insert_data_in_csv_table(data)
+    def ten_ten_ten(self):
+        logger.debug('ten_ten_ten')
+
+        csv_files = Data.scan_csv_file(source=r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV")
+        tuple_for_table = Configuration1.tuple_csv_file_freq(csv_files)
+
+        start = 0
+        stop = min(len(tuple_for_table),10)
+        ten_min = [item for item in tuple_for_table[start:stop:]]
+
+        half_position = len(tuple_for_table)//2
+        start = max(10,half_position-5)
+        stop = min(len(tuple_for_table),half_position+5)
+        ten_mean = [item for item in tuple_for_table[start:stop:]]
+
+        start = max(0, len(tuple_for_table)-10)
+        stop = len(tuple_for_table)
+        ten_max = [item for item in tuple_for_table[start:stop:]]
+
+        return ten_min, ten_mean, ten_max
 
 
     # Parameters for test
@@ -1454,17 +1482,52 @@ class Configuration1:
 
         param = {
             'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
-            'project_name': "gbm-ov-tmz-immune-stroma-patchy-sample",
-            'executable_name': "gbm_ov_tmz_immune_stroma_patchy.exe",
+            'project_name': "gbm-tmz-ov",
+            'executable_name': "gbm_tmz_ov.exe",
             'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
             'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz_virus",
             'suffix': "",
             'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz_virus.xml",
             'csv_file': "",
-            'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov_tmz_immune_stroma_patchy\config",
+            'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_tmz_ov\config",
             'counter_end': 144
         }
         return param
+    @staticmethod
+    def tmz_param_dictionary():
+        logger.debug('tmz_ov_param_dictionary')
+
+        param = {
+            'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
+            'project_name': "gbm_tmz",
+            'executable_name': "gbm_tmz.exe",
+            'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
+            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz",
+            'suffix': "",
+            'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz.xml",
+            'csv_file': "",
+            'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_tmz\config",
+            'counter_end': 144
+        }
+        return param
+    @staticmethod
+    def ov_param_dictionary():
+        logger.debug('tmz_ov_param_dictionary')
+        param = {
+            'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
+            'project_name': "gbm-ov",
+            'executable_name': "gbm_ov.exe",
+            'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
+            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz",
+            'suffix': "",
+            'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\virus.xml",
+            'csv_file': "",
+            'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov\config",
+            'counter_end': 144
+        }
+        return param
+
+
     @staticmethod
     def test_param_dictionary():
         logger.debug('test_param_dictionary')
@@ -1624,40 +1687,7 @@ class Configuration1:
 
 
 
-    def test_ten_ten_ten_on_table(self):
-        logger.debug('test_ten_ten_ten_on_table')
 
-        ten_min, ten_mean, ten_max = self.ten_ten_ten()
-        data = ten_max
-        self.csv_files = list(map(lambda item: item[0], data))
-        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv',''),sum(item[1::]), *item[1::])
-        data = list(map(name, data))
-
-
-        self.insert_data_in_csv_table(data)
-
-
-
-    def ten_ten_ten(self):
-        logger.debug('ten_ten_ten')
-
-        csv_files = Data.scan_csv_file(source=r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV")
-        tuple_for_table = Configuration1.tuple_csv_file_freq(csv_files)
-
-        start = 0
-        stop = min(len(tuple_for_table),10)
-        ten_min = [item for item in tuple_for_table[start:stop:]]
-
-        half_position = len(tuple_for_table)//2
-        start = max(10,half_position-5)
-        stop = min(len(tuple_for_table),half_position+5)
-        ten_mean = [item for item in tuple_for_table[start:stop:]]
-
-        start = max(0, len(tuple_for_table)-10)
-        stop = len(tuple_for_table)
-        ten_max = [item for item in tuple_for_table[start:stop:]]
-
-        return ten_min, ten_mean, ten_max
 
 
 
