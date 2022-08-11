@@ -8,11 +8,11 @@ from pyMCDS import pyMCDS
 script_path = os.path.realpath(__file__)
 script_name = 'plot_concentration_chemokine'
 
-def plot_concentration_chemokine(data_source_folder, data_destination_folder, figure_name, *args, **kwargs):
+def plot_concentration_chemokine(data_source_folder, data_destination_folder, figure_name, moment='final.xml', *args, **kwargs):
     plt.style.use('ipynb')
     source = data_source_folder
     destination = data_destination_folder
-    mcds = pyMCDS('final.xml', source)
+    mcds = pyMCDS(moment, source)
     mcds.get_substrate_names()
 
     chemokineval = mcds.get_concentrations('chemokine')

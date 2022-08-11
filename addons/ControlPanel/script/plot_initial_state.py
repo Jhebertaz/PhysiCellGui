@@ -20,7 +20,7 @@ def plot_initial_state(data_source_folder, data_destination_folder=None, figure_
     destination = data_destination_folder
 
     # read csv
-    df = pd.read_csv(source)
+    df = pd.read_csv(source, header=None)
     freq = df.iloc[:, 3].value_counts().to_dict()
 
     if 'type_dict' in kwargs:
@@ -49,12 +49,12 @@ def plot_initial_state(data_source_folder, data_destination_folder=None, figure_
 
     plt.gca().set_aspect('equal')
     plt.legend(legend,edgecolor="black", bbox_to_anchor=(1.04,0.5), loc='center left', borderaxespad=0)
+    plt.show()
+    # if destination and figure_name:
+    #     figure_path = os.path.join(destination, f"{figure_name}.png")
+    #     plt.savefig(figure_path)
 
-    if destination and figure_name:
-        figure_path = os.path.join(destination, f"{figure_name}.png")
-        plt.savefig(figure_path)
-
-    return figure_path
+    # return figure_path
 
 
 if __name__ == "__main__":
