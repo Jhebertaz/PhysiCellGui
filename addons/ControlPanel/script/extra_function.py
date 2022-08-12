@@ -1187,7 +1187,7 @@ class Configuration1:
         return {'sec': sec_, 'min': min_, 'hour': hour_, 'day':day_}
     def export_folder_naming_rule(self):
         logger.debug('export_folder_naming_rule')
-        return os.path.join(self.param['data_destination_folder'], str(self.counter)+self.param['project_name'] + '_' + self.param['suffix'])
+        return os.path.join(self.param['data_destination_folder'], str(self.counter+20)+self.param['project_name'] + '_' + self.param['suffix'])
     def create_xml_from_template_change(self, *args, **kwargs):
         logger.debug('create_xml_from_template_change')
         param = kwargs
@@ -1290,7 +1290,7 @@ class Configuration1:
 
             self.timer.stop()
             self.param['csv_file'] = self.csv_files[self.counter-1]
-            self.param['data_destination_folder'] = Configuration1.test_param_dictionary()['data_destination_folder']
+            self.param['data_destination_folder'] = Configuration1.ov_param_dictionary()['data_destination_folder']
             # next csv_file
             self.foo()
 
@@ -1428,7 +1428,7 @@ class Configuration1:
     # test simualion
     def tmz_ov_simulation_launcher(self):
         logger.debug('tmz_ov_simulation_launcher')
-        self.param = Configuration1.tmz_ov_param_dictionary()
+        self.param = Configuration1.ov_param_dictionary()
         # self.param = Configuration1.tmz_param_dictionary()
         # self.param = Configuration1.ov_param_dictionary()
         # update xml window (just to see it)
@@ -1446,7 +1446,7 @@ class Configuration1:
         logger.debug('test_ten_ten_ten_on_table')
 
         ten_min, ten_mean, ten_max = self.ten_ten_ten()
-        data = (*ten_min,*ten_mean,*ten_max)
+        data = ten_max
         self.csv_files = list(map(lambda item: item[0], data))
         name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv',''),sum(item[1::]), *item[1::])
         data = list(map(name, data))
@@ -1512,13 +1512,13 @@ class Configuration1:
         return param
     @staticmethod
     def ov_param_dictionary():
-        logger.debug('tmz_ov_param_dictionary')
+        logger.debug('ov_param_dictionary')
         param = {
             'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
             'project_name': "gbm-ov",
             'executable_name': "gbm_ov.exe",
             'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
-            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz",
+            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\ov",
             'suffix': "",
             'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\virus.xml",
             'csv_file': "",
