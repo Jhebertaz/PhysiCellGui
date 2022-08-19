@@ -354,6 +354,16 @@ class Simulation2:
     def finish_function(self):
         logger.debug('finish_function')
 
+        # verify that all file are there
+        existe1 = QFile.exists(os.path.join(self.kwargs['data_source_folder'], "final.svg"))
+        filename = 'snapshot' + "%08i" % self.kwargs['counter_end'] + '.svg'
+        existe2 = QFile.exists(os.path.join(self.kwargs['data_source_folder'], filename))
+
+        if not(existe1 and existe2):
+            print('redundancy')
+            self.finish = None
+            return
+
         ## ending task
         name = os.path.abspath(self.kwargs['csv_file']).split(os.sep)[-1].replace('.csv', '')
         txt = f"data exported from {self.kwargs['data_source_folder']}\n to {self.kwargs['data_destination_folder']}"
@@ -398,21 +408,23 @@ class Simulation2:
         Simulation2.run_simulation(**self.kwargs)
         param = self.kwargs
         now_counter = 0
-
+        other_counter = -40
         # emit progress
         progress_callback.emit(now_counter)
         self.start_time = time.time()
-        while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")):
+        while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")) and other_counter<120:
             # wait one second
             time.sleep(1)
+            other_counter+=1
+            # print(other_counter)
 
             # check for the lastest every sec svg file and took is number
             filename = 'snapshot' + "%08i" % now_counter + '.svg'
 
             if QFile.exists(os.path.join(param['data_source_folder'], filename)):
                 now_counter += 1
+                other_counter = 0
                 progress_callback.emit(now_counter)
-
 
     ## Function
     @staticmethod
@@ -465,6 +477,7 @@ class Simulation2:
                 insta.copy_files(scr=data_source_folder, dest=data_destination_folder)
 
             return data_destination_folder
+
     @staticmethod
     def verification(*args, **kwargs):
         logger.debug('verification')
@@ -477,177 +490,6 @@ class Simulation2:
                 else:
                     ok_bool_list.append(False)
         return not (False in ok_bool_list)
-
-
-# Simulation instance to facilitate series of simulation
-# class Simulation:
-#     def __init__(self, *args, **kwargs):
-#         #
-#         self.is_finish = False
-#         if 'progress_widget' in kwargs:
-#             self.progress_widget = kwargs['progress_widget']
-#
-#             self.progress_bar = self.progress_widget['progress_bar']
-#             self.progress_bar.setMinimum(0)
-#             self.progress_bar.setMaximum(kwargs['counter_end'])
-#
-#         self.time_data = {'sec': None, 'min': None, 'hour': None, 'day':None}
-#
-#
-#         # every param
-#         self.kwargs = kwargs
-#
-#         # *args should be ending function in order
-#         self.args = args
-#
-#         self.basic_task = []
-#
-#         if 'data_destination_folder' in kwargs and 'data_source_folder' in kwargs:
-#             self.basic_task.append(lambda: Simulation.specific_export_output(**self.kwargs))
-#             self.basic_task.append(lambda: Simulation.make_gif(**self.kwargs))
-#
-#         # if 'program_path' in kwargs:
-#         #     self.basic_task.append(lambda:Simulation.cleanup(kwargs["program_path"]))
-#
-#     def start_simulation(self):
-#
-#         param = self.kwargs
-#
-#         # loop variable
-#         self.now_counter = 0
-#         end_counter = param['counter_end']
-#
-#         start_time = time.time()
-#
-#         # Cleanup
-#         Simulation.cleanup(**param)
-#         # Run
-#         Simulation.run_simulation(**param)
-#
-#         self.progress_bar.setValue(self.now_counter)
-#
-#         while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")):
-#             # wait one second
-#             time.sleep(1)
-#             self.time_data = Configuration1.estimated_time(start_time, time.time(), self.now_counter, end_counter)
-#             # self.update(start_time, time.time(), now_counter, end_counter)
-#
-#
-#
-#             # check for the lastest every sec svg file and took is number
-#             filename = 'snapshot' + "%08i" % self.now_counter + '.svg'
-#
-#             if QFile.exists(os.path.join(param['data_source_folder'], filename)):
-#                 self.now_counter += 1
-#
-#
-#                 self.progress_bar.setValue(self.now_counter)
-#
-#                 # update estimated time
-#                 start_time = time.time()
-#
-#
-#         # Other function from args
-#         # for task in self.basic_task+list(self.args):
-#         #     task()
-#         # # Cleanup
-#         # Simulation.cleanup(**param)
-#         self.is_finish = True
-#         logger.debug('finish')
-#
-#
-#
-#
-#     def set_up_simulation(self):
-#
-#         # Automatic suffix for uniqueness
-#         self.kwargs['suffix'] = Configuration1.now_time_in_str()
-#         self.kwargs['data_destination_folder'] = self.export_folder_naming_rule()
-#
-#         # copy csv to the right destination
-#         csv_file_name = self.kwargs['csv_file'].split(os.sep)[-1]
-#         csv_copy_path = os.path.join(self.kwargs['configuration_files_destination_folder'], csv_file_name)
-#
-#         if not QFile.copy(self.kwargs['csv_file'], csv_copy_path):
-#             logger.debug("overwriting current csv")
-#             QFile.remove(csv_copy_path)
-#             QFile.copy(self.kwargs['csv_file'], csv_copy_path)
-#
-#         # Maybe a condition to disable it
-#         # Automatic change to xml
-#         if self.automatic_change_to_config():
-#             # create xml config file from the template and from the changes
-#             self.create_xml_from_template_change(**self.kwargs)
-#
-#         # Return configured simulation object
-#         for k, v in self.kwargs.items():
-#             logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
-#
-#
-#
-#     ## Function
-#     @staticmethod
-#     def cleanup(*args, **kwargs):
-#         logger.debug('cleanup')
-#         program_path = kwargs['program_path']
-#         # os.system('start cmd /c "make reset & make reset & make data-cleanup & make clean"')
-#         # os.system(f'start cmd /c make -C {program_path} reset & make -C {program_path} reset & make -C {program_path} data-cleanup & make -C {program_path} clean"')
-#         os.system(f'make -C {program_path} reset')
-#         time.sleep(1)
-#         os.system(f'make -C {program_path} reset')
-#         time.sleep(1)
-#         os.system(f'make -C {program_path} data-cleanup')
-#         time.sleep(1)
-#         os.system(f'make -C {program_path} clean')
-#         time.sleep(1)
-#
-#         return True
-#     @staticmethod
-#     def run_simulation(*args,**kwargs):
-#         logger.debug('run_simulation')
-#         program_path = kwargs['program_path']
-#         project_name = kwargs['project_name']
-#         executable_name = kwargs['executable_name']
-#
-#         executable_path = os.path.abspath(os.path.join(program_path,executable_name))
-#         # os.system(f'start cmd /c  "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
-#         os.system(f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
-#         return True
-#     @staticmethod
-#     def make_gif(*args, **kwargs):
-#         logger.debug('make_gif')
-#         data_source_folder = kwargs['data_source_folder']
-#         data_destination_folder = kwargs['data_destination_folder']
-#         os.system(f'start cmd /c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
-#         return f"{data_destination_folder}/out.gif"
-#     @staticmethod
-#     def specific_export_output(data_source_folder=None, data_destination_folder=None, *args, **kwargs):
-#         logger.debug('specific_export_output')
-#         logger.debug(f"data_source_folder{data_source_folder}")
-#         logger.debug(f"data_destination_folder{data_destination_folder}")
-#         if not data_source_folder:
-#             data_source_folder = QFileDialog.getExistingDirectory(None, "Select Directory Source")
-#         if not data_destination_folder:
-#             data_destination_folder = QFileDialog.getExistingDirectory(None, "Select Directory Destination")
-#
-#         if data_source_folder and data_destination_folder:
-#             insta = FileCopyProgress()
-#             insta.copy_files(scr=data_source_folder, dest=data_destination_folder)
-#
-#         return data_destination_folder
-#
-#     @staticmethod
-#     def verification(*args, **kwargs):
-#         logger.debug('verification')
-#         ok_bool_list = [True]
-#         param = kwargs
-#         for k, v in param.items():
-#             if not v:
-#                 if k in ['suffix', 'csv_file']:
-#                     ok_bool_list.append(True)
-#                 else:
-#                     ok_bool_list.append(False)
-#         return not (False in ok_bool_list)
 
 # Plotting tool
 class Plotting:
@@ -669,6 +511,8 @@ class Plotting:
     def get_figure_name(script_name, *args, **kwargs):
         """Figure naming schema : script_name_arg1_arg2..."""
         return script_name+"_".join(args)
+
+
 
 # Config file manipulation
 class Config:
@@ -979,6 +823,7 @@ class Configuration1:
         self.args = args
 
         self.counter = 1
+        self.redundancy_counter = 0
         self.time_gap = [0,0]
 
     def init_configuration_1(self):
@@ -997,7 +842,9 @@ class Configuration1:
 
 
         # Initiate parameters to be editable in a future sub-windows
-        self.param = Configuration1.tmz_ov_param_dictionary()
+        self.param = Configuration1.empty_param_dictionary()
+        self.original_data_destination_folder = Configuration1.empty_param_dictionary()['data_destination_folder']
+
         self.csv_files = []#[self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
 
         # # If xml_template_file is specify then for every modification to be made
@@ -1054,7 +901,6 @@ class Configuration1:
                             short = QDir.toNativeSeparators(xml_file_).split(os.sep)[-1]
                             self.simulation_config_widget['xml_template_file'].setText(short)
                             self.init_minimal_xml_setup()
-
                 if key == 'run_simulation':
                     def updater():
                         [self.option_command[k].setEnabled(False) for k in self.option_command.keys()]
@@ -1062,18 +908,18 @@ class Configuration1:
 
                 fun = updater
 
-
                 if key == 'convert_scan_to_csv':
                     temp_dict = Configuration1.type_dict()
                     fun = lambda:Data.data_conversion_segmentation_celltypes(
                         r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV", type_dict=temp_dict)
-
-
                 if key == 'ten_ten_ten':
                     fun = self.test_ten_ten_ten_on_table
-
                 if key == 'tmz_ov_simulation_launcher':
                     fun = self.tmz_ov_simulation_launcher
+                if key == 'tmz_simulation_launcher':
+                    fun = self.tmz_simulation_launcher
+                if key == 'ov_simulation_launcher':
+                    fun = self.ov_simulation_launcher
 
                 value.clicked.connect(fun)
 
@@ -1087,6 +933,7 @@ class Configuration1:
             del self.media_viewer_tab_dict[title]
             # Remove tab
             self.subwindows_init['media_viewer']['widget'].removeTab(index)
+
     def init_minimal_xml_setup(self):
         logger.debug('init_minimal_xml_setup')
         short = self.subwindows_init['minimal_xml_setup']['widget']
@@ -1111,14 +958,22 @@ class Configuration1:
         # make gui change
         self.show_param_on_widget()
         self.update_csv_file_table()
-        if self.counter-1>0:
-            self.color_row_in_green(self.counter-2)
+
+        # Coloring previous in green
+        i=1
+        while self.counter-i>0:
+            self.color_row_in_green(self.counter-i-1)
+            i += 1
+        i = None
+
         self.color_row_in_yellow(self.counter-1)
         self.init_minimal_xml_setup()
 
+        # configure local progress bar
         self.subwindows_init['progress_view']['widget'].element['local_']['progress_bar'].setMinimum(0)
         self.subwindows_init['progress_view']['widget'].element['local_']['progress_bar'].setMaximum(self.param['counter_end'])
 
+        # configure global progress bar
         self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMinimum(0)
         self.subwindows_init['progress_view']['widget'].element['global_']['progress_bar'].setMaximum(len(self.csv_files))
 
@@ -1131,6 +986,8 @@ class Configuration1:
         # start timer
         self.timer.start()
         self.start_time = time.time()
+
+
 
     def set_up_simulation(self):
         logger.debug('setup_simulation')
@@ -1160,8 +1017,10 @@ class Configuration1:
         # Return configured simulation object
         for k, v in self.param.items():
             logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
+
     def show_param_on_widget(self):
         logger.debug('show_param_on_widget')
+
         # show param value on screen
         for k, v in self.param.items():
             if not type(self.simulation_config_widget[k]) == type(QPushButton()):
@@ -1172,6 +1031,7 @@ class Configuration1:
     def now_time_in_str():
         logger.debug('now_time_in_str')
         return str(QDateTime.currentDateTime().toString(Qt.ISODate)).replace(':', '_')
+
     @staticmethod
     def estimated_time(start_time, end_time, now_value, end_value):
         # logger.debug('estimated_time')
@@ -1187,7 +1047,7 @@ class Configuration1:
         return {'sec': sec_, 'min': min_, 'hour': hour_, 'day':day_}
     def export_folder_naming_rule(self):
         logger.debug('export_folder_naming_rule')
-        return os.path.join(self.param['data_destination_folder'], str(self.counter+20)+self.param['project_name'] + '_' + self.param['suffix'])
+        return os.path.join(self.param['data_destination_folder'], str(self.counter)+self.param['project_name'] + '_' + self.param['suffix'])
     def create_xml_from_template_change(self, *args, **kwargs):
         logger.debug('create_xml_from_template_change')
         param = kwargs
@@ -1235,23 +1095,29 @@ class Configuration1:
             rr_ = math.sqrt(x_**2+y_**2)
             tumour_radius = round((max(x_,y_)+rr_)/2)
 
-            # cell_density
-            cell_density = round(total_cell/(tumour_radius**2),3)
-
             #  A_frag
-            a_frag = round(tumour_radius**2 * math.pi * (10**(-3))**2,3)
+            # a_frag = round(tumour_radius**2 * math.pi * (10**(-3))**2,3)
+            a_frag = round(abs((x_max - x_min) * (y_max - y_min)), 3)
+
+            # cell_density
+            cell_density = round(total_cell/(a_frag),5)
+
+            # unit conversion
+            a_frag = round(abs((x_max - x_min) * (y_max - y_min))*(10**(-3))**2, 3)
 
             # K_v
             k_V_star = round(tumour_radius * 1.58 * (10**(14))/1270)
 
             # k_C
-            k_C_star = round(4.76 * (10**(6)) * k_V_star/(1.58 * (10**(14))/1270))
+            k_C_star = round(4.76 * (10**(6)) * tumour_radius/1270)
 
 
             # Change tumour radius
             self._XML_CHANGES.append({'path':['PhysiCell_settings','user_parameters','R','#text'], 'value':f'{tumour_radius}'})
+
+            length = min(1.5*tumour_radius*(1+self.redundancy_counter*(10/100)), 1500)
             # Change domain
-            for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[2.5*tumour_radius,-2.5*tumour_radius,2.5*tumour_radius,-2.5*tumour_radius]):
+            for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[length,-length,length,-length]):
                 self._XML_CHANGES.append({'path':['PhysiCell_settings','domain', item], 'value':f'{int(round(value))}'})
             # Change cell density
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'xhi', '#text'], 'value': f'{cell_density}'})
@@ -1280,31 +1146,42 @@ class Configuration1:
         self.update_local_label()
         self.update_global_label()
 
+    # Recurrent function
     def is_current_simulation_finish(self):
         logger.debug('is_current_simulation_finish')
 
+        if self.current_simulation.finish == None:
+            # Restart and increase lenght
+            self.redundancy_counter +=1
+            self.param['data_destination_folder'] = self.export_folder_naming_rule()
+            print(self.redundancy_counter)
+            self.foo()
+
         if self.current_simulation.finish and self.counter!=len(self.csv_files):
             self.time_gap = [self.start_time,time.time()]
+
             # set the previous row in green
             self.counter+=1
 
             self.timer.stop()
             self.param['csv_file'] = self.csv_files[self.counter-1]
-            self.param['data_destination_folder'] = Configuration1.ov_param_dictionary()['data_destination_folder']
+            self.param['data_destination_folder'] = self.original_data_destination_folder
+
+            # reset redundancy counter
+            redundancy_counter = 0
+
             # next csv_file
             self.foo()
-
+        # end up simulation
         elif self.current_simulation.finish and self.counter==len(self.csv_files):
             self.counter+=1
             self.current_simulation_progress_update()
             self.timer.stop()
-
+        # end up simulation
         elif self.counter>len(self.csv_files):
             self.counter += 1
             self.current_simulation_progress_update()
             self.timer.stop()
-
-
     def update_global_label(self):
         logger.debug('update_global_label')
 
@@ -1410,12 +1287,14 @@ class Configuration1:
         dictionary = {
             "special_csv_scan": QPushButton('click to choose'),
             "run_simulation": QPushButton('click to choose'),
-            "convert_scan_to_csv": QPushButton('click to run'),
-            "print_XML_CHANGES": QPushButton('click to run'),
-            'test_copy': QPushButton('click to run'),
-            'get_table_column':QPushButton('click to run'),
-            'ten_ten_ten':QPushButton('click to run'),
-            'tmz_ov_simulation_launcher':QPushButton('click to run')
+            # "convert_scan_to_csv": QPushButton('click to run'),
+            # "print_XML_CHANGES": QPushButton('click to run'),
+            # 'test_copy': QPushButton('click to run'),
+            # 'get_table_column':QPushButton('click to run'),
+            # 'ten_ten_ten':QPushButton('click to run'),
+            'tmz_ov_simulation_launcher':QPushButton('click to run'),
+            'tmz_simulation_launcher':QPushButton('click to run'),
+            'ov_simulation_launcher':QPushButton('click to run')
         }
         return dictionary
     @staticmethod
@@ -1428,9 +1307,9 @@ class Configuration1:
     # test simualion
     def tmz_ov_simulation_launcher(self):
         logger.debug('tmz_ov_simulation_launcher')
-        self.param = Configuration1.ov_param_dictionary()
-        # self.param = Configuration1.tmz_param_dictionary()
-        # self.param = Configuration1.ov_param_dictionary()
+        self.param = Configuration1.tmz_ov_param_dictionary()
+        self.original_data_destination_folder = Configuration1.tmz_ov_param_dictionary()['data_destination_folder']
+
         # update xml window (just to see it)
         self.init_minimal_xml_setup()
 
@@ -1439,14 +1318,55 @@ class Configuration1:
         # self.csv_files = Data.scan_csv_file(source=source_)
 
         # choose csv files
+        # self.test_ten_ten_ten_density_on_table()
         self.test_ten_ten_ten_on_table()
         # run simulation
-        self.foo()
+        # self.foo()
+    def tmz_simulation_launcher(self):
+        logger.debug('tmz_ov_simulation_launcher')
+        self.param = Configuration1.tmz_param_dictionary()
+        self.original_data_destination_folder = Configuration1.tmz_param_dictionary()['data_destination_folder']
+
+        # update xml window (just to see it)
+        self.init_minimal_xml_setup()
+
+        # load csv_file
+        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+        # self.csv_files = Data.scan_csv_file(source=source_)
+
+        # choose csv files
+        # self.test_ten_ten_ten_density_on_table()
+        self.test_ten_ten_ten_on_table()
+
+        # run simulation
+        # self.foo()
+    def ov_simulation_launcher(self):
+        logger.debug('ov_simulation_launcher')
+        self.param = Configuration1.ov_param_dictionary()
+        self.original_data_destination_folder = Configuration1.ov_param_dictionary()['data_destination_folder']
+
+
+        # update xml window (just to see it)
+        self.init_minimal_xml_setup()
+
+        # load csv_file
+        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+        # self.csv_files = Data.scan_csv_file(source=source_)
+
+        # choose csv files
+        # self.test_ten_ten_ten_density_on_table()
+
+        self.test_ten_ten_ten_on_table()
+        # run simulation
+        # self.foo()
+
+
+
     def test_ten_ten_ten_on_table(self):
         logger.debug('test_ten_ten_ten_on_table')
 
         ten_min, ten_mean, ten_max = self.ten_ten_ten()
-        data = ten_max
+        data = (*ten_min, *ten_mean, *ten_max)
         self.csv_files = list(map(lambda item: item[0], data))
         name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv',''),sum(item[1::]), *item[1::])
         data = list(map(name, data))
@@ -1474,6 +1394,39 @@ class Configuration1:
 
         return ten_min, ten_mean, ten_max
 
+    def ten_ten_ten_density(self):
+        logger.debug('ten_ten_ten_density')
+
+        csv_files = Data.scan_csv_file(source=r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV")
+        tuple_for_table = Configuration1.tuple_csv_file_density(csv_files)
+
+        start = 0
+        stop = min(len(tuple_for_table),10)
+        ten_min = [item for item in tuple_for_table[start:stop:]]
+        # print(*ten_min,sep='\n')
+        half_position = len(tuple_for_table)//2
+        start = max(10,half_position-5)
+        stop = min(len(tuple_for_table),half_position+5)
+        ten_mean = [item for item in tuple_for_table[start:stop:]]
+
+        start = max(0, len(tuple_for_table)-10)
+        stop = len(tuple_for_table)
+        ten_max = [item for item in tuple_for_table[start:stop:]]
+
+        return ten_min, ten_mean, ten_max
+    def test_ten_ten_ten_density_on_table(self):
+        logger.debug('test_ten_ten_ten_density_on_table')
+
+        ten_min, ten_mean, ten_max = self.ten_ten_ten_density()
+        data = (*ten_min, *ten_mean, *ten_max)
+        self.csv_files = list(map(lambda item: item[0], data))
+        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv',''), sum(item[2::]), *item[1::])
+        data = list(map(name, data))
+        # print(*data,sep='\n')
+
+
+        self.insert_data_in_csv_table(data)
+
 
     # Parameters for test
     @staticmethod
@@ -1495,11 +1448,11 @@ class Configuration1:
         return param
     @staticmethod
     def tmz_param_dictionary():
-        logger.debug('tmz_ov_param_dictionary')
+        logger.debug('tmz_param_dictionary')
 
         param = {
             'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
-            'project_name': "gbm_tmz",
+            'project_name': "gbm-tmz",
             'executable_name': "gbm_tmz.exe",
             'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
             'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz",
@@ -1591,8 +1544,8 @@ class Configuration1:
         logger.debug('update_csv_file_table')
 
         # data from self.csv_files
-        data = Configuration1.tuple_csv_file_freq(self.csv_files)
-        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv', ''), sum(item[1::]), *item[1::])
+        data = Configuration1.tuple_csv_file(self.csv_files)
+        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv', ''), sum(item[2::]), *item[1::])
         data = list(map(name, data))
         self.reset_csv_table()
         self.insert_data_in_csv_table(data)
@@ -1610,7 +1563,7 @@ class Configuration1:
 
         if short.columnCount() == 0:
             temp_dict2 = Configuration1.reverse_type_dict()
-            columns = ['file_name', 'total_cell'] + list(temp_dict2.values())
+            columns = ['file_name', 'total_cell', 'cell_density'] + list(temp_dict2.values())
             # Desactivate edit mode
             short.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -1641,6 +1594,7 @@ class Configuration1:
         short.setRowCount(len(data))
         k = 0
         for row in data:
+            print(row)
             # Insert row
             # short.removeRow(short.rowCount())
             # short.insertRow(k)
@@ -1678,19 +1632,89 @@ class Configuration1:
         csv_file = self.csv_files[event.row()]
         csv_file_name = os.path.abspath(csv_file).split(os.sep)[-1].replace('.csv','')
         if not csv_file_name in self.media_viewer_tab_dict.keys():
+
             # get plot
             self.media_viewer_tab_dict[csv_file_name] = widget = pg.PlotWidget()
+
             widget.setBackground('w')
+            plot_item = pg.ScatterPlotItem(pxMode = False)
+
+            df = pd.read_csv(csv_file, header=None)
+            freq = df.iloc[:, 3].value_counts().to_dict()
+            i=1
+            for k in freq.keys():
+                sub = df.loc[df.iloc[:, 3] == k]
+                spots = []
+                x = sub[0].tolist()
+                y = sub[1].tolist()
+                plot_item.addPoints(x=x,y=y, size=10, brush=pg.intColor(i * 10, i *10))
+
+
+                i+=1
+            i=None
+            widget.addItem(plot_item)
+
+
+
             self.subwindows_init['media_viewer']['widget'].addTab(widget, csv_file_name)
 
         self.subwindows_init['media_viewer']['widget'].setCurrentWidget(self.media_viewer_tab_dict[csv_file_name])
 
+    @staticmethod
+    def tuple_csv_file(csv_files):
+        logger.debug('tuple_csv_file')
+
+        # gather every csv file
+        csv_number = []
+        n = 15
+        for csv_file in csv_files:
+
+            try:
+                df = pd.read_csv(csv_file, header=None)
+                df.columns = ['x', 'y', 'z', 'type']
+                cell_type_concern = list(map(float, range(1, 5)))
+                sub = df.loc[df['type'].isin(cell_type_concern)]
+
+                # Number of cells
+                total_cell = len(sub)
+
+                # Tumour zone
+                x_max = sub['x'].max()
+                x_min = sub['x'].min()
+
+                y_max = sub['y'].max()
+                y_min = sub['y'].min()
+
+                # Tumour radius
+                x_ = max(x_max, abs(x_min))
+                y_ = max(y_max, abs(y_min))
+                rr_ = math.sqrt(x_ ** 2 + y_ ** 2)
+                tumour_radius = round((max(x_, y_) + rr_) / 2)
+
+                # cell_density
+                cell_density = round(total_cell / (tumour_radius ** 2), 5)
+
+                # Cell frequency count
+                freq = df.iloc[:, 3].value_counts().to_dict()
+
+                item = [0 for _ in range(n)]
+                for key in sorted(freq.keys()):
+                    item[int(key)] = freq[key]
+
+                csv_number.append((csv_file, cell_density, *item[1::]))
 
 
+            except pd.errors.EmptyDataError:
+                print('empty csv')
 
+        # filter with condition
+        condition = lambda k: k[2] > 5 and k[3] > 100 and k[4] > 5 and k[5] > 5
+        # condition = lambda k: True if k else False
+        new_list = list(filter(condition, csv_number))
 
-
-
+        # Sort
+        # new_list.sort(key=lambda item: item[3])
+        return new_list
     @staticmethod
     def tuple_csv_file_freq(csv_files):
         logger.debug('tuple_csv_file_freq')
@@ -1702,6 +1726,28 @@ class Configuration1:
 
             try:
                 df = pd.read_csv(csv_file, header=None)
+                df.columns = ['x', 'y', 'z', 'type']
+                cell_type_concern = list(map(float, range(1, 5)))
+                sub = df.loc[df['type'].isin(cell_type_concern)]
+
+                # Number of cells
+                total_cell = len(sub)
+
+                # Tumour zone
+                x_max = sub['x'].max()
+                x_min = sub['x'].min()
+
+                y_max = sub['y'].max()
+                y_min = sub['y'].min()
+
+                # Tumour radius
+                x_ = max(x_max, abs(x_min))
+                y_ = max(y_max, abs(y_min))
+                rr_ = math.sqrt(x_ ** 2 + y_ ** 2)
+                tumour_radius = round((max(x_, y_) + rr_) / 2)
+
+                # cell_density
+                cell_density = round(total_cell / (tumour_radius ** 2), 5)
 
                 # Cell frequency count
                 freq = df.iloc[:, 3].value_counts().to_dict()
@@ -1710,19 +1756,82 @@ class Configuration1:
                 for key in sorted(freq.keys()):
                     item[int(key)] = freq[key]
 
-                csv_number.append((csv_file, *item[1::]))
+                csv_number.append((csv_file, cell_density, *item[1::]))
 
 
             except pd.errors.EmptyDataError:
                 print('empty csv')
 
         # filter with condition
-        condition = lambda k: k[1] > 5 and k[2] > 100 and k[3] > 5 and k[4] > 5
+        condition = lambda k: k[2] > 5 and k[3] > 100 and k[4] > 5 and k[5] > 5
         # condition = lambda k: True if k else False
         new_list = list(filter(condition, csv_number))
 
         # Sort
-        new_list.sort(key=lambda item: item[2])
+        new_list.sort(key=lambda item: item[3])
+        return new_list
+    @staticmethod
+    def tuple_csv_file_density(csv_files):
+        logger.debug('tuple_csv_file_freq')
+
+        # gather every csv file
+        csv_number = []
+        n = 15
+        for csv_file in csv_files:
+
+            try:
+                df = pd.read_csv(csv_file, header=None)
+                df.columns = ['x', 'y', 'z', 'type']
+                cell_type_concern = list(map(float, range(1, 5)))
+                sub = df.loc[df['type'].isin(cell_type_concern)]
+
+                # Number of cells
+                total_cell = len(sub)
+
+                # Tumour zone
+                x_max = sub['x'].max()
+                x_min = sub['x'].min()
+
+                y_max = sub['y'].max()
+                y_min = sub['y'].min()
+
+                # Tumour radius
+                x_ = max(x_max, abs(x_min))
+                y_ = max(y_max, abs(y_min))
+                rr_ = math.sqrt(x_ ** 2 + y_ ** 2)
+                tumour_radius = round((max(x_, y_) + rr_) / 2)
+
+                # cell_density
+                cell_density = round(total_cell / (tumour_radius ** 2), 5)
+
+                #  A_frag
+                a_frag = round(tumour_radius ** 2 * math.pi * (10 ** (-3)) ** 2, 3)
+
+                # K_v
+                k_V_star = round(tumour_radius * 1.58 * (10 ** (14)) / 1270)
+
+                # k_C
+                k_C_star = round(4.76 * (10 ** (6)) * k_V_star / (1.58 * (10 ** (14)) / 1270))
+
+                # Cell frequency count
+                freq = df.iloc[:, 3].value_counts().to_dict()
+
+                item = [0 for _ in range(n)]
+                for key in sorted(freq.keys()):
+                    item[int(key)] = freq[key]
+
+                csv_number.append((csv_file, cell_density, *item[1::]))
+
+            except pd.errors.EmptyDataError:
+                print('empty csv')
+
+        # filter with condition
+        condition = lambda k: k[2] > 5 and k[3] > 100 and k[4] > 5 and k[5] > 5
+        # condition = lambda k: True if k else False
+        new_list = list(filter(condition, csv_number))
+        # Sort
+        new_list.sort(key=lambda item: item[1])
+        # print(*new_list, sep='\n')
         return new_list
 
 
@@ -1754,97 +1863,5 @@ class MultipleProgressBar(QWidget):
         for key, value in self.element[name].items():
             if value:
                 self.layout.addRow(name, value)
-
-
-
-# # Simple progress bar
-# class SimulationProgress(QProgressDialog):
-#
-#     def __init__(self, parent=None, counter_end=144, data_source_folder=None, *args, **kwargs):
-#         super().__init__(parent)
-#
-#         self.start_time = 0
-#
-#         self.end_time = 0
-#         self.time_delta = []
-#
-#         self.counter = 0
-#         self.counter_end = counter_end
-#
-#         self.data_source_folder = data_source_folder
-#
-#         # Ordered ending task list
-#         if not "end_task_list" in kwargs.keys():
-#             self.end_task_list = [lambda: None]
-#         else:
-#             self.end_task_list = kwargs['end_task_list']
-#
-#         # Ordered recuring task list
-#         if not "recuring_task_list" in kwargs.keys():
-#             self.recuring_task_list = [lambda: None]
-#         else:
-#             self.recuring_task_list = lambda: kwargs['recuring_task_list']()
-#
-#         self.setRange(0, self.counter_end)
-#         self.setWindowTitle("Simulation progress")
-#
-#
-#         self.timer = QTimer()
-#         self.timer.setInterval(500)
-#
-#         self.timer.timeout.connect(self.recurring_function)
-#         self.timer.timeout.connect(self.update_estimating_time)
-#         self.timer.start()
-#         self.show()
-#
-#     # TODO : make it usuable outside of this specific situation
-#     def recurring_function(self):
-#
-#         if self.wasCanceled():
-#             self.timer.stop()
-#             self.close()
-#             return
-#
-#         if not QFile.exists(os.path.join(self.data_source_folder,"final.svg")):
-#
-#             # check for the lastest every sec svg file and took is number
-#             n = self.counter + 1
-#             filename = 'snapshot' + "%08i" % n + '.svg'
-#
-#             if QFile.exists(os.path.join(self.data_source_folder, filename)):
-#                 self.counter += 1
-#                 self.end_time = time.time()
-#                 self.update_estimating_time()
-#
-#                 self.start_time = time.time()
-#
-#                 self.setValue(self.counter)
-#                 # TODO : plot1
-#
-#                 QCoreApplication.processEvents()
-#             self.update_estimating_time()
-#
-#
-#         else:
-#             self.timer.stop()
-#             self.close()
-#             self.end_function()
-#
-#     def end_function(self):
-#         for task in self.end_task_list:
-#             task()
-#         return "DONE"
-#
-#     def update_estimating_time(self):
-#
-#         delta_time = abs(self.end_time - self.start_time)
-#         delta_step = abs(self.counter_end - self.counter)
-#         total_time = delta_time * delta_step
-#
-#         min = round(total_time) // 60
-#         sec = round(abs(total_time - 60 * min))
-#
-#         if min > 0 and sec > 0:
-#             self.setLabelText(f"Estimated time before finishing {min} min {round(sec)} sec")
 
 
