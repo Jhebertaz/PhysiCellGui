@@ -412,7 +412,7 @@ class Simulation2:
         # emit progress
         progress_callback.emit(now_counter)
         self.start_time = time.time()
-        while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")) and other_counter<120:
+        while not QFile.exists(os.path.join(param['data_source_folder'], "final.svg")) and other_counter<10:
             # wait one second
             time.sleep(1)
             other_counter+=1
@@ -477,7 +477,6 @@ class Simulation2:
                 insta.copy_files(scr=data_source_folder, dest=data_destination_folder)
 
             return data_destination_folder
-
     @staticmethod
     def verification(*args, **kwargs):
         logger.debug('verification')
@@ -515,6 +514,7 @@ class Plotting:
 
 
 # Config file manipulation
+# For you Anudeep
 class Config:
     def __init__(self, *args, **kwargs):
 
@@ -845,7 +845,7 @@ class Configuration1:
         self.param = Configuration1.empty_param_dictionary()
         self.original_data_destination_folder = Configuration1.empty_param_dictionary()['data_destination_folder']
 
-        self.csv_files = []#[self.param['csv_file'], r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"] # testing
+        self.csv_files = []
 
         # # If xml_template_file is specify then for every modification to be made
         # # this list of dict {path, value} will track
@@ -866,7 +866,7 @@ class Configuration1:
         qpushbutton_key_list = list(self.option_command.keys())
 
         for k ,v in self.simulation_config_widget.items():
-            if type(v)==type(QPushButton()):
+            if type(v) == type(QPushButton()):
                 qpushbutton_key_list.append(k)
 
         for key, value in {**self.simulation_config_widget, **self.option_command}.items():
@@ -901,6 +901,7 @@ class Configuration1:
                             short = QDir.toNativeSeparators(xml_file_).split(os.sep)[-1]
                             self.simulation_config_widget['xml_template_file'].setText(short)
                             self.init_minimal_xml_setup()
+
                 if key == 'run_simulation':
                     def updater():
                         [self.option_command[k].setEnabled(False) for k in self.option_command.keys()]
@@ -908,10 +909,14 @@ class Configuration1:
 
                 fun = updater
 
+                # if key == 'convert_scan_to_csv':
+                    # temp_dict = Configuration1.type_dict()
+                    # fun = lambda:Data.data_conversion_segmentation_celltypes(r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV", type_dict=temp_dict)
+
                 if key == 'convert_scan_to_csv':
                     temp_dict = Configuration1.type_dict()
-                    fun = lambda:Data.data_conversion_segmentation_celltypes(
-                        r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV", type_dict=temp_dict)
+                    fun = lambda:Data.data_conversion_segmentation_celltypes(r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Pictures\test", type_dict=temp_dict)
+
                 if key == 'ten_ten_ten':
                     fun = self.test_ten_ten_ten_on_table
                 if key == 'tmz_ov_simulation_launcher':
@@ -933,7 +938,7 @@ class Configuration1:
             del self.media_viewer_tab_dict[title]
             # Remove tab
             self.subwindows_init['media_viewer']['widget'].removeTab(index)
-
+    # Shows the xml in subwindow
     def init_minimal_xml_setup(self):
         logger.debug('init_minimal_xml_setup')
         short = self.subwindows_init['minimal_xml_setup']['widget']
@@ -1017,7 +1022,7 @@ class Configuration1:
         # Return configured simulation object
         for k, v in self.param.items():
             logger.debug(f"{k}{'.' * (100 - len(k))}{v}")
-
+    # update parameters on subwindow
     def show_param_on_widget(self):
         logger.debug('show_param_on_widget')
 
@@ -1115,7 +1120,8 @@ class Configuration1:
             # Change tumour radius
             self._XML_CHANGES.append({'path':['PhysiCell_settings','user_parameters','R','#text'], 'value':f'{tumour_radius}'})
 
-            length = min(1.5*tumour_radius*(1+self.redundancy_counter*(10/100)), 1500)
+            length = min(1.5*tumour_radius*(1+self.redundancy_counter*(50/100)), 1510)
+
             # Change domain
             for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[length,-length,length,-length]):
                 self._XML_CHANGES.append({'path':['PhysiCell_settings','domain', item], 'value':f'{int(round(value))}'})
@@ -1153,14 +1159,25 @@ class Configuration1:
         if self.current_simulation.finish == None:
             # Restart and increase lenght
             self.redundancy_counter +=1
+
+            # skip this file
+            if self.redundancy_counter == 15:
+                # self.counter += 1
+                self.timer.stop()
+                self.param['csv_file'] = self.csv_files[self.counter - 1]
+                self.param['data_destination_folder'] = self.original_data_destination_folder
+                self.param['data_destination_folder'] = self.export_folder_naming_rule()
+
+                # reset redundancy counter
+                redundancy_counter = 0
+                self.current_simulation.finish = True
+
             self.param['data_destination_folder'] = self.export_folder_naming_rule()
-            print(self.redundancy_counter)
             self.foo()
 
         if self.current_simulation.finish and self.counter!=len(self.csv_files):
             self.time_gap = [self.start_time,time.time()]
 
-            # set the previous row in green
             self.counter+=1
 
             self.timer.stop()
@@ -1172,16 +1189,19 @@ class Configuration1:
 
             # next csv_file
             self.foo()
+
         # end up simulation
         elif self.current_simulation.finish and self.counter==len(self.csv_files):
             self.counter+=1
             self.current_simulation_progress_update()
             self.timer.stop()
+
         # end up simulation
         elif self.counter>len(self.csv_files):
             self.counter += 1
             self.current_simulation_progress_update()
             self.timer.stop()
+
     def update_global_label(self):
         logger.debug('update_global_label')
 
@@ -1315,13 +1335,15 @@ class Configuration1:
 
         # load csv_file
         source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
-        # self.csv_files = Data.scan_csv_file(source=source_)
 
+        self.test_ten_ten_ten_on_table()
         # choose csv files
         # self.test_ten_ten_ten_density_on_table()
-        self.test_ten_ten_ten_on_table()
+        # self.test_ten_ten_ten_on_table()
+
         # run simulation
         # self.foo()
+
     def tmz_simulation_launcher(self):
         logger.debug('tmz_ov_simulation_launcher')
         self.param = Configuration1.tmz_param_dictionary()
@@ -1336,10 +1358,12 @@ class Configuration1:
 
         # choose csv files
         # self.test_ten_ten_ten_density_on_table()
-        self.test_ten_ten_ten_on_table()
+        # self.test_ten_ten_ten_on_table()
 
+        self.test_on_table()
         # run simulation
         # self.foo()
+
     def ov_simulation_launcher(self):
         logger.debug('ov_simulation_launcher')
         self.param = Configuration1.ov_param_dictionary()
@@ -1356,12 +1380,26 @@ class Configuration1:
         # choose csv files
         # self.test_ten_ten_ten_density_on_table()
 
-        self.test_ten_ten_ten_on_table()
+        # self.test_ten_ten_ten_on_table()
+        self.test_on_table()
         # run simulation
         # self.foo()
 
 
+    def test_on_table(self):
+        logger.debug('test_on_table')
 
+        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+        csv_files = Data.scan_csv_file(source=source_)
+        data = Configuration1.tuple_csv_file_freq(csv_files)
+
+        self.csv_files = list(map(lambda item: item[0], data))[-2::]
+        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv', ''), sum(item[1::]), *item[1::])
+        data = list(map(name, data))
+
+        self.insert_data_in_csv_table(data)
+
+    # Special selection
     def test_ten_ten_ten_on_table(self):
         logger.debug('test_ten_ten_ten_on_table')
 
@@ -1594,7 +1632,6 @@ class Configuration1:
         short.setRowCount(len(data))
         k = 0
         for row in data:
-            print(row)
             # Insert row
             # short.removeRow(short.rowCount())
             # short.insertRow(k)
