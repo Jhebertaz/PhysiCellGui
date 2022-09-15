@@ -1,24 +1,27 @@
-from PySide6.QtCore import Qt
+#############
+## Package ##
+#############
 from PySide6.QtGui import QShortcut, QKeySequence
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QHBoxLayout, QMdiArea, QSizePolicy, QFrame, \
-    QAbstractScrollArea, QVBoxLayout
+    QAbstractScrollArea, QVBoxLayout, QWidget
+
 from script.extra_function import *
 
 # basic info
-filename = 'ADDON_ControlPanel.py'
+filename = 'ADDON_SimulationWithPhysiCell.py'
 path = os.path.realpath(__file__).strip(filename)
 
 # Refresh ui file
 if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
     # linux or OS X
-    os.system(f"pyside6-uic {'C' + path}{os.sep}controlPanel.ui > {'C' + path}{os.sep}controlPanelUi.py")
+    os.system(f"pyside6-uic {path}{os.sep}controlPanel.ui > {path}{os.sep}controlPanelUi.py")
 elif sys.platform == "win32":
     # Windows
     os.system(f"pyside6-uic {'C' + path}{os.sep}controlPanel.ui -o {'C' + path}{os.sep}controlPanelUi.py")
 
 from controlPanelUi import Ui_Dialog
 
-class ControlPanel(QDialog):
+class SimulationWithPhysiCell(QDialog):
 
     def __init__(self, parent=None, option=False):
         super().__init__()
@@ -45,8 +48,9 @@ class ControlPanel(QDialog):
         self.ui.mdiArea = QMdiArea()
 
         self.test_vertical_layout.addWidget(self.ui.mdiArea)
+
         ## Customize MDI Area
-        self.ui.mdiArea.keyPressEvent = lambda e: ControlPanel.keyPressEvent(parent=self, event=e)
+        self.ui.mdiArea.keyPressEvent = lambda e: SimulationWithPhysiCell.keyPressEvent(parent=self, event=e)
         self.ui.mdiArea.tileSubWindows()
         self.ui.mdiArea.setViewMode(QMdiArea.TabbedView)
         self.ui.mdiArea.setTabsClosable(False)
@@ -55,6 +59,7 @@ class ControlPanel(QDialog):
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.ui.mdiArea.sizePolicy().hasHeightForWidth())
+
         self.ui.mdiArea.setSizePolicy(sizePolicy1)
         self.ui.mdiArea.setFrameShape(QFrame.StyledPanel)
         self.ui.mdiArea.setFrameShadow(QFrame.Sunken)
@@ -100,7 +105,6 @@ class ControlPanel(QDialog):
 
     def set_working_directory(self, path):
         self.working_directory = path
-        # self.ui.svgViewer.set_working_directory(path=self.working_directory)
 
     def shortcut_mdi(self, option):
         if option == 'tiling':
@@ -116,54 +120,3 @@ class ControlPanel(QDialog):
             if (event.key() != Qt.Key_Escape):
                 parent.keyPressEvent(event)
         return None
-
-
-
-
-
-
-
-
-
-
-
-
-
-# For button
-# self.ui.formLayout = QVBoxLayout()
-
-# Left
-# self.ui.groupBox = QWidget()
-
-# Setting up for the widget
-# sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-# sizePolicy.setHorizontalStretch(0)
-# sizePolicy.setVerticalStretch(0)
-
-# self.ui.groupBox.setSizePolicy(sizePolicy)
-# self.ui.groupBox.setLayout(self.ui.formLayout)
-#
-# self.label = {}
-# self.button = {}
-
-# functions["run_simulation"] = lambda : self.simulation()
-# functions["Clear"] = lambda : clear(self.working_directory)
-#
-# for key, value in functions.items():
-#     self.label[key] = QLabel(key)
-#     self.button[key] = QPushButton(key)
-#     self.button[key].clicked.connect(value)
-#     self.ui.formLayout.addWidget(self.button[key]) #, self.button[key])
-
-#  Scrollable button row
-# self.ui.button_scroll = QScrollArea()
-# self.ui.main_horizontal_layout.addWidget(self.ui.button_scroll)
-#
-# self.ui.button_scroll.setWidget(self.ui.groupBox)
-# self.ui.button_scroll.setWidgetResizable(True)
-# self.ui.button_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-# self.ui.button_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-# self.ui.svgViewer = svg(option=False)
-
-

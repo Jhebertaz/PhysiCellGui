@@ -53,7 +53,7 @@ with open('module_to_import.py','w') as file:
 from module_to_import import *
 
 # move toward the real path
-os.chdir("C"+realpath)
+os.chdir(realpath)
 
 class MainWindow(QMainWindow):
 
