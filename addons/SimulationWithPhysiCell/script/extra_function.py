@@ -23,7 +23,7 @@ from PySide6.QtWidgets import QTableWidget, QFormLayout, QLineEdit, QLabel,\
 
 # Custom import
 from .tool_data_management import *
-
+from .tool_simulation import *
 
 sys.path.insert(1, os.path.join(PATH ,'..','..','SvgViewer'))
 from ADDON_SvgViewer import SvgViewer as svg
@@ -320,8 +320,11 @@ class Configuration1:
             # K_v
             k_V_star = round(tumour_radius * 1.58 * (10**(14))/1270)
 
+
             # k_C
             k_C_star = round(4.76 * (10**(6)) * tumour_radius/1270)
+
+
 
 
             # Change tumour radius

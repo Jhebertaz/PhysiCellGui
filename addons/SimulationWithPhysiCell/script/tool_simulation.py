@@ -90,7 +90,7 @@ class Simulation2:
         data_source_folder = self.kwargs['data_destination_folder']
         data_destination_folder = self.kwargs['data_destination_folder']
 
-
+        # Independant Analysis
         # # plot
         # # cell vs time
         # script_path = os.path.join(PATH, 'plot_time_cell_number.py')
