@@ -337,8 +337,7 @@ class Configuration1:
             # Change K_v
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'K_C', '#text'], 'value': f'{k_C_star}'})
             # Change max time based on param
-            self._XML_CHANGES.append(
-                {'path': ['PhysiCell_settings', 'overall', 'max_time', '#text'], 'value': f'{self.param["counter_end"]*30}'})
+            self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'overall', 'max_time', '#text'], 'value': f'{self.param["counter_end"]*30}'})
             # Change path to csv
             self._XML_CHANGES.append({'path': ['PhysiCell_settings','initial_conditions','cell_positions','filename'], 'value':os.path.abspath(csv_file).split(os.sep)[-1]})
 
