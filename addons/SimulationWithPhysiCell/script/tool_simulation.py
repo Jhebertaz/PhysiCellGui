@@ -164,13 +164,25 @@ class Simulation2:
         project_name = kwargs['project_name']
         executable_name = kwargs['executable_name']
         executable_path = os.path.abspath(os.path.join(program_path, executable_name))
-        os.system(f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+        if os.name == 'nt':
+            # Windows
+            os.system(f'start cmd /c "make -C {program_path} {project_name} & make -C {program_path} & cd {program_path} & {executable_path}"')  # to keep cmd open --> cmd /c and /c for closing after task
+        else:
+            # Manjaro gnome-terminal
+            os.system(f'gnome-terminal -- zsh -c "make -C {program_path} {project_name} && make -C {program_path} && cd {program_path} && {executable_path}; exec zsh"')
         return True
     @staticmethod
     def make_gif(*args, **kwargs):
         data_source_folder = kwargs['data_source_folder']
         data_destination_folder = kwargs['data_destination_folder']
-        os.system(f'start cmd /c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
+        if os.name == 'nt':
+            # Windows
+            os.system(f'start cmd /c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif"')
+        else:
+            # Manjaro gnome-terminal
+            os.system(f'gnome-terminal -- zsh -c "magick convert {data_source_folder}/s*.svg {data_destination_folder}/out.gif; exex zsh"')
+
+
         return f"{data_destination_folder}/out.gif"
     @staticmethod
     def specific_export_output(data_source_folder=None, data_destination_folder=None, *args, **kwargs):

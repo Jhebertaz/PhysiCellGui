@@ -127,22 +127,19 @@ class Configuration1:
                 fun = updater
 
                 # if key == 'convert_scan_to_csv':
-                    # temp_dict = Configuration1.type_dict()
-                    # fun = lambda:Data.data_conversion_segmentation_celltypes(r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV", type_dict=temp_dict)
+                #     temp_dict = Configuration1.type_dict()
+                #     fun = lambda:Data.data_conversion_segmentation_celltypes(self.param["csv_files_source"], r"C:\Users\VmWin\Pictures\test", type_dict=temp_dict)
 
-                if key == 'convert_scan_to_csv':
-                    temp_dict = Configuration1.type_dict()
-                    fun = lambda:Data.data_conversion_segmentation_celltypes(r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\Segmentation", r"C:\Users\VmWin\Pictures\test", type_dict=temp_dict)
-
-                if key == 'ten_ten_ten':
-                    fun = self.test_ten_ten_ten_on_table
-                if key == 'tmz_ov_simulation_launcher':
-                    fun = self.tmz_ov_simulation_launcher
-                if key == 'tmz_simulation_launcher':
-                    fun = self.tmz_simulation_launcher
-                if key == 'ov_simulation_launcher':
-                    fun = self.ov_simulation_launcher
-
+                # if key == 'ten_ten_ten':
+                #     fun = self.test_ten_ten_ten_on_table
+                # if key == 'tmz_ov_simulation_launcher':
+                #     fun = self.tmz_ov_simulation_launcher
+                # if key == 'tmz_simulation_launcher':
+                #     fun = self.tmz_simulation_launcher
+                # if key == 'ov_simulation_launcher':
+                #     fun = self.ov_simulation_launcher
+                if key == 'general_launcher':
+                    fun = self.general_launcher
                 value.clicked.connect(fun)
 
             self.subwindows_init['minimal_simulation_information']['layout'].addRow(key, value)
@@ -163,7 +160,6 @@ class Configuration1:
         short.clear()
         value = Config.xml2dict(self.param['xml_template_file'])
         short.fill_item(short.invisibleRootItem(), value)
-
 
     # Simulation related
     def foo(self):
@@ -223,6 +219,7 @@ class Configuration1:
         if not QFile.copy(self.param['csv_file'], csv_copy_path):
             QFile.remove(csv_copy_path)
             QFile.copy(self.param['csv_file'], csv_copy_path)
+            print(csv_copy_path)
 
         # Maybe a condition to disable it
         # Automatic change to xml
@@ -234,9 +231,9 @@ class Configuration1:
         # Return configured simulation object
         for k, v in self.param.items():
             print(f"{k}{'.' * (100 - len(k))}{v}")
+
     # update parameters on subwindow
     def show_param_on_widget(self):
-
 
         # show param value on screen
         for k, v in self.param.items():
@@ -320,17 +317,13 @@ class Configuration1:
             # K_v
             k_V_star = round(tumour_radius * 1.58 * (10**(14))/1270)
 
-
             # k_C
             k_C_star = round(4.76 * (10**(6)) * tumour_radius/1270)
-
-
-
 
             # Change tumour radius
             self._XML_CHANGES.append({'path':['PhysiCell_settings','user_parameters','R','#text'], 'value':f'{tumour_radius}'})
 
-            length = min(1.5*tumour_radius*(1+self.redundancy_counter*(50/100)), 1510)
+            length = min(1.5*tumour_radius*(1+self.redundancy_counter*(15/100)), 1510)
 
             # Change domain
             for item, value in zip(['x_max','x_min', 'y_max', 'y_min'],[length,-length,length,-length]):
@@ -343,7 +336,9 @@ class Configuration1:
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'K_V', '#text'], 'value': f'{k_V_star}'})
             # Change K_v
             self._XML_CHANGES.append({'path': ['PhysiCell_settings', 'user_parameters', 'K_C', '#text'], 'value': f'{k_C_star}'})
-
+            # Change max time based on param
+            self._XML_CHANGES.append(
+                {'path': ['PhysiCell_settings', 'overall', 'max_time', '#text'], 'value': f'{self.param["counter_end"]*30}'})
             # Change path to csv
             self._XML_CHANGES.append({'path': ['PhysiCell_settings','initial_conditions','cell_positions','filename'], 'value':os.path.abspath(csv_file).split(os.sep)[-1]})
 
@@ -428,9 +423,6 @@ class Configuration1:
                 f"Estimated time before finishing {day_} day {hour_} hour {min_} min {round(sec_)} sec")
 
 
-    #
-
-
     ## Ending simulation task related
     def endind_simulation_data_export(self):
 
@@ -484,7 +476,6 @@ class Configuration1:
         dictionary['minimal_simulation_information']['layout'] = dictionary['minimal_simulation_information']['widget'].layout
 
         return dictionary
-
     @staticmethod
     def simulation_config_widget_dictionary():
         dictionary = {
@@ -499,21 +490,20 @@ class Configuration1:
             "configuration_files_destination_folder": SearchComboBox(),
             "xml_template_file": QPushButton('click to choose'),
             "csv_file": QPushButton('click to choose'),
+            "csv_files_source": QPushButton('click to choose'),
         }
         return dictionary
-
-
     @staticmethod
     def option_command_dictionary():
         dictionary = {
             "special_csv_scan": QPushButton('click to choose'),
             "run_simulation": QPushButton('click to choose'),
-            'tmz_ov_simulation_launcher':QPushButton('click to run'),
-            'tmz_simulation_launcher':QPushButton('click to run'),
-            'ov_simulation_launcher':QPushButton('click to run')
+            'general_launcher':QPushButton('click to run'),
+            # 'tmz_ov_simulation_launcher':QPushButton('click to run'),
+            # 'tmz_simulation_launcher':QPushButton('click to run'),
+            # 'ov_simulation_launcher':QPushButton('click to run')
         }
         return dictionary
-
     @staticmethod
     def media_viewer_dictionary():
         dictionary = {'svg_viewer':svg(option=False)}
@@ -521,63 +511,79 @@ class Configuration1:
 
 
 
-
-
     # test simualion
-    def tmz_ov_simulation_launcher(self):
-        self.param = Configuration1.tmz_ov_param_dictionary()
-        self.original_data_destination_folder = Configuration1.tmz_ov_param_dictionary()['data_destination_folder']
+    # def tmz_ov_simulation_launcher(self):
+    #     self.param = Configuration1.test_param_dictionary()#tmz_ov_param_dictionary()
+    #     self.original_data_destination_folder = Configuration1.test_param_dictionary()['data_destination_folder'] #tmz_ov_param_dictionary()['data_destination_folder']
+    #
+    #     # update xml window (just to see it)
+    #     self.init_minimal_xml_setup()
+    #
+    #     # load csv_file
+    #     source_ = self.param["csv_files_source"] #r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+    #
+    #
+    #     # self.test_ten_ten_ten_on_table()
+    #     # choose csv files
+    #     self.test_ten_ten_ten_density_on_table()
+    #     # self.test_ten_ten_ten_on_table()
+    #
+    #     # run simulation
+    #     # self.foo()
+    # def tmz_simulation_launcher(self):
+    #     self.param = Configuration1.tmz_param_dictionary()
+    #     self.original_data_destination_folder = Configuration1.tmz_param_dictionary()['data_destination_folder']
+    #
+    #     # update xml window (just to see it)
+    #     self.init_minimal_xml_setup()
+    #
+    #     # load csv_file
+    #     source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+    #     # self.csv_files = Data.scan_csv_file(source=source_)
+    #
+    #     # choose csv files
+    #     # self.test_ten_ten_ten_density_on_table()
+    #     # self.test_ten_ten_ten_on_table()
+    #
+    #     self.test_on_table()
+    #     # run simulation
+    #     # self.foo()
+    # def ov_simulation_launcher(self):
+    #     self.param = Configuration1.ov_param_dictionary()
+    #     self.original_data_destination_folder = Configuration1.ov_param_dictionary()['data_destination_folder']
+    #
+    #
+    #     # update xml window (just to see it)
+    #     self.init_minimal_xml_setup()
+    #
+    #     # load csv_file
+    #     source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
+    #     # self.csv_files = Data.scan_csv_file(source=source_)
+    #
+    #     # choose csv files
+    #     # self.test_ten_ten_ten_density_on_table()
+    #
+    #     # self.test_ten_ten_ten_on_table()
+    #     self.test_on_table()
+    #     # run simulation
+    #     # self.foo()
+
+    def general_launcher(self):
+        self.param = Configuration1.test_param_dictionary()
+        self.original_data_destination_folder = Configuration1.test_param_dictionary()['data_destination_folder']
 
         # update xml window (just to see it)
         self.init_minimal_xml_setup()
 
         # load csv_file
-        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
-
-        self.test_ten_ten_ten_on_table()
-        # choose csv files
-        # self.test_ten_ten_ten_density_on_table()
-        # self.test_ten_ten_ten_on_table()
-
-        # run simulation
-        # self.foo()
-    def tmz_simulation_launcher(self):
-        self.param = Configuration1.tmz_param_dictionary()
-        self.original_data_destination_folder = Configuration1.tmz_param_dictionary()['data_destination_folder']
-
-        # update xml window (just to see it)
-        self.init_minimal_xml_setup()
-
-        # load csv_file
-        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
-        # self.csv_files = Data.scan_csv_file(source=source_)
+        source_ = self.param["csv_files_source"]  # r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
 
         # choose csv files
-        # self.test_ten_ten_ten_density_on_table()
-        # self.test_ten_ten_ten_on_table()
+        self.ten_ten_ten_general(self.ten_ten_ten)
 
-        self.test_on_table()
         # run simulation
-        # self.foo()
-    def ov_simulation_launcher(self):
-        self.param = Configuration1.ov_param_dictionary()
-        self.original_data_destination_folder = Configuration1.ov_param_dictionary()['data_destination_folder']
+        self.foo()
 
-
-        # update xml window (just to see it)
-        self.init_minimal_xml_setup()
-
-        # load csv_file
-        source_ = r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV\Segmentation"
-        # self.csv_files = Data.scan_csv_file(source=source_)
-
-        # choose csv files
-        # self.test_ten_ten_ten_density_on_table()
-
-        # self.test_ten_ten_ten_on_table()
-        self.test_on_table()
-        # run simulation
-        # self.foo()
 
 
     def test_on_table(self):
@@ -605,11 +611,11 @@ class Configuration1:
         self.insert_data_in_csv_table(data)
     def ten_ten_ten(self):
 
-        csv_files = Data.scan_csv_file(source=r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV")
+        csv_files = Data.scan_csv_file(source=self.param['csv_files_source'])
         tuple_for_table = Configuration1.tuple_csv_file_freq(csv_files)
 
         start = 0
-        stop = min(len(tuple_for_table),10)
+        stop = min(len(tuple_for_table), 10)
         ten_min = [item for item in tuple_for_table[start:stop:]]
 
         half_position = len(tuple_for_table)//2
@@ -620,9 +626,7 @@ class Configuration1:
         start = max(0, len(tuple_for_table)-10)
         stop = len(tuple_for_table)
         ten_max = [item for item in tuple_for_table[start:stop:]]
-
         return ten_min, ten_mean, ten_max
-
     def ten_ten_ten_density(self):
 
         csv_files = Data.scan_csv_file(source=r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\data\CSV")
@@ -655,6 +659,17 @@ class Configuration1:
         self.insert_data_in_csv_table(data)
 
 
+
+    def ten_ten_ten_general(self, function):
+        ten_min, ten_mean, ten_max = function()
+        data = (*ten_min, *ten_mean, *ten_max)
+        self.csv_files = list(map(lambda item: item[0], data))
+        name = lambda item: (os.path.abspath(item[0]).split(os.sep)[-1].replace('.csv', ''), sum(item[2::]), *item[1::])
+        data = list(map(name, data))
+        # print(*data,sep='\n')
+
+        self.insert_data_in_csv_table(data)
+
     # Parameters for test
     @staticmethod
     def tmz_ov_param_dictionary():
@@ -674,7 +689,6 @@ class Configuration1:
         return param
     @staticmethod
     def tmz_param_dictionary():
-
         param = {
             'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
             'project_name': "gbm-tmz",
@@ -700,24 +714,24 @@ class Configuration1:
             'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\virus.xml",
             'csv_file': "",
             'configuration_files_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov\config",
-            'counter_end': 144
+            'counter_end': 144,
+            'csv_files_source':"/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Code/Working/PhysiCell_V.1.10.1/",
         }
         return param
-
-
     @staticmethod
     def test_param_dictionary():
         param = {
-            'program_path': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1",
-            'project_name': "gbm-ov-tmz-immune-stroma-patchy-sample",
-            'executable_name': "gbm_ov_tmz_immune_stroma_patchy.exe",
-            'data_source_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\output",
-            'data_destination_folder': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\result\tmz_virus",
+            'program_path': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Code/Working/PhysiCell_V.1.10.1",
+            'project_name': "gbm-tmz-ov",
+            'executable_name': "gbm_tmz_ov",
+            'data_source_folder': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Code/Working/PhysiCell_V.1.10.1/output",
+            'data_destination_folder': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Simulation/result/tmz_virus",
             'suffix': "2022-08-03T09_42_54",
-            'xml_template_file': r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Simulation\template\tmz_virus.xml",
-            'csv_file': r"C:\Users\VmWin\Pictures\test\Segmentation\Project 1 ICI glioma IMC\20200617\OneDrive_10_7-7-2020-1\Pano 01_Col2-3_1_ROI 05_X17-343-B2_5\05_X17-343-B2_5.csv",#                         r"C:\Users\VmWin\Pictures\test\Segmentation\Project 3 SOC glioma IMC (McGill)\20200702\OneDrive_5_7-14-2020\Pano 01_Col5-13_1_ROI 10_NP14-1026-2A_10\10_NP14-1026-2A_10.csv"],
-            'configuration_files_destination_folder':r"C:\Users\VmWin\Documents\University\Ete2022\Stage\Code\Working\PhysiCell_V.1.10.1\sample_projects\gbm_ov_tmz_immune_stroma_patchy\config",
-            'counter_end': 10
+            'xml_template_file': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Simulation/template/tmz_virus.xml",
+            'csv_file': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Simulation/data/CSV/Segmentation/Project 1 ICI glioma IMC/20200617/OneDrive_11_7-7-2020-2/Pano 01_Col2-3_1_ROI 17_X17-526-B2_17/17_X17-526-B2_17.csv",
+            'configuration_files_destination_folder':"/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Code/Working/PhysiCell_V.1.10.1/sample_projects/gbm_tmz_ov/config",
+            'counter_end': 10,
+            'csv_files_source': "/home/fiftyfour/Documents/University/Bachelor/Ete2022/Stage/Simulation/data/CSV/Segmentation",
         }
         return param
     @staticmethod
@@ -732,7 +746,8 @@ class Configuration1:
             'xml_template_file':None,
             'csv_file': None,
             'configuration_files_destination_folder':None,
-            'counter_end': 0
+            'counter_end': 0,
+            'csv_files_source':None,
         }
         return param
     @staticmethod
