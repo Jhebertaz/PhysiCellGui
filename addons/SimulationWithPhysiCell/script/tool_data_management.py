@@ -257,7 +257,7 @@ class Data:
 
             # cell type
             try:
-                c_t = mat2['cellTypes'][i][0][0]
+                c_t = mat2['cellTypes'][i][0][0] #c_t for cell type
 
                 if type_dict:
                     if c_t in type_dict.keys():
@@ -308,6 +308,7 @@ class Data:
                 # joining all of the above three
                 os.mkdir(dirpath)
 
+    ## The class you need to convert patient data into cvs file (recursivly0
     @staticmethod
     def data_conversion_segmentation_celltypes(source, destination, type_dict=None):
         try:
@@ -323,8 +324,9 @@ class Data:
             path = root.split(os.sep)
 
             for file in files:
+
                 if 'nuclei_multiscale.mat' in file:
-                    f_path = os.path.join(*([f"C:{os.sep}"] + path[1::] + [file]))
+                    f_path = os.path.join(*([f"C:{os.sep}"] + path[1::] + [file])) #absolute path
                     position_file = f_path
 
                     # For each scan segmentation have a folder, not for celltypes
@@ -332,8 +334,21 @@ class Data:
                     cell_type_file = os.path.join(*([f"C:{os.sep}"] + path[1::])).replace('Segmentation',
                                                                                           'CellTypes') + '.mat'
 
+
+
+
+
                     # data
-                    data = np.asarray([item for item in Data.x_y_position_type(position_file, cell_type_file,type_dict=type_dict)])
+                    data = np.asarray(
+                        [
+                            item for item in
+
+
+                            Data.x_y_position_type(position_file,
+                                                   cell_type_file,
+                                                   type_dict=type_dict)
+                        ]
+                    )
 
                     # Construct destination path
                     idx = path.index('Segmentation')

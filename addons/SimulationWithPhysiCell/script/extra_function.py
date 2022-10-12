@@ -286,7 +286,9 @@ class Configuration1:
             df = pd.read_csv(csv_file, header=None)
             df.columns = ['x', 'y', 'z', 'type']
             cell_type_concern = list(map(float, range(1, 5)))
-            sub = df.loc[df['type'].isin(cell_type_concern)]
+            sub = df.loc[
+                df['type'].isin(cell_type_concern)
+            ]
 
             # Number of cells
             total_cell = len(sub)
@@ -301,15 +303,15 @@ class Configuration1:
             # Tumour radius
             x_ = max(x_max,abs(x_min))
             y_ = max(y_max, abs(y_min))
-            rr_ = math.sqrt(x_**2+y_**2)
-            tumour_radius = round((max(x_,y_)+rr_)/2)
+            rr_ = math.sqrt(x_**2+y_**2)               # tumour_radius
+            tumour_radius = round((max(x_,y_)+rr_)/2)  # rr
 
             #  A_frag
             # a_frag = round(tumour_radius**2 * math.pi * (10**(-3))**2,3)
             a_frag = round(abs((x_max - x_min) * (y_max - y_min)), 3)
 
             # cell_density
-            cell_density = round(total_cell/(a_frag),5)
+            cell_density = round(total_cell/(a_frag), 5) # the number of digit HERE is a sensitive parameter
 
             # unit conversion
             a_frag = round(abs((x_max - x_min) * (y_max - y_min))*(10**(-3))**2, 3)
