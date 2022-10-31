@@ -202,7 +202,8 @@ class Simulation2:
         param = kwargs
         for k, v in param.items():
             if not v:
-                if k in ['suffix', 'csv_file']:
+                print(k)
+                if k in ['suffix', 'csv_file','csv_files_source']:
                     ok_bool_list.append(True)
                 else:
                     ok_bool_list.append(False)
